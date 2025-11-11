@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head ('Ticket Logger - Form')"></head>
+
+<body class="d-flex flex-column h-100">
+
+<header th:replace="fragments/header :: header"></header>
+
+<main class="form-page">
+    <div class="form-card">
+
+        <!-- ✅ Encabezado internacionalizado -->
+        <h1 th:if="${region.id == null}" th:text="#{msg.region-form.add}">Nueva Comunidad Autónoma</h1>
+        <h1 th:unless="${region.id == null}" th:text="#{msg.region-form.edit}">Editar Comunidad Autónoma</h1>
+
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <form th:action="${region.id == null} ? @{/regions/insert} : @{/regions/update}"
+              th:object="${region}" method="post" class="mt-3">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="mb-3">
+                <label for="code" class="form-label" th:text="#{msg.region-form.code}">Código:</label>
+                <input type="text" th:field="*{code}" id="code" class="form-control"/>
+                <div th:if="${#fields.hasErrors('code')}" class="text-danger" th:errors="*{code}"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="name" class="form-label" th:text="#{msg.region-form.name}">Nombre:</label>
+                <input type="text" th:field="*{name}" id="name" class="form-control"/>
+                <div th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary"
+                    th:text="${region.id == null} ? #{msg.region-form.create} : #{msg.region-form.update}">
+                Crear
+            </button>
+
+            <a th:href="@{/regions}" class="btn btn-secondary" th:text="#{msg.region-form.returnback}">
+                Volver a la lista
+            </a>
+
+        </form>
+    </div>
+</main>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+<div th:replace="fragments/scripts :: scripts"></div>
+
+</body>
+</html>
