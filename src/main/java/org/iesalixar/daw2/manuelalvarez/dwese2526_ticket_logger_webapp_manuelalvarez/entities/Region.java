@@ -39,6 +39,8 @@ import jakarta.validation.constraints.NotNull;
 public class Region {
 
 
+
+
     // Campo que almacena el identificador único de la región. Este campo suele ser autogenerado
     // por la base de datos, lo que lo convierte en un buen candidato para una clave primaria.
     // No añadimos validación en el ID porque en este caso puede ser nulo al insertarse
