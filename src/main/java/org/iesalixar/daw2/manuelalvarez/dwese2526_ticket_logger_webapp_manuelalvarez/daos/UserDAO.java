@@ -15,6 +15,7 @@ public interface UserDAO {
     User getUsersById(Long id) ;
     boolean existsUserByCode(String username) ;
     boolean existsUserByCodeAndNotId(String Username, Long id) ;
-
+    List<User> listUsersPage(int page, int size, String sortField, String sortDir);
+    long countUsers();
 
 }

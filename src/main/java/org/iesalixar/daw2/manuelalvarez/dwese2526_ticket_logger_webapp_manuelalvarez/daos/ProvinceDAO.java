@@ -7,6 +7,8 @@ import java.util.List;
 public interface ProvinceDAO {
 
     List<Province> listAllProvinces();
+    List<Province> listProvincesPage(int page, int size, String sortField, String sortDir);
+    long countProvinces();
     void deleteProvince(Long id);
     boolean existsProvinceByCodeAndNotId(String code, Long id);
     void insertProvince(Province province);

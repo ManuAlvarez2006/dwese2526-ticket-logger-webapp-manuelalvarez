@@ -12,8 +12,11 @@ public interface RegionDAO {
     void insertRegion(Region region) ;
     void updateRegion(Region region) ;
     void deleteRegion(Long id) ;
-    Region getRegionsById(Long id) ;
+    Region getRegionById(Long id) ;
     boolean existsRegionByCode(String code) ;
+    List<Region> listRegionsPage(int page, int size, String sortField, String sortDir);
+    long countRegions();
+
     boolean existsRegionByCodeAndNotId(String code, Long id) ;
 
 

@@ -16,7 +16,7 @@
 
         <!-- Botón para añadir -->
         <a th:href="@{/users/new}" class="btn btn-success" th:text="#{msg.user-list.add}">
-            Agregar Nueva Comunidad Autónoma
+            Agregar Nuevo Usuario
         </a>
 
         <!-- Mensaje de error -->
@@ -26,16 +26,76 @@
         <table class="table table-bordered table-striped mt-3">
             <thead>
             <tr>
-                <th th:text="#{msg.user-list.id}">ID</th>
-                <th th:text="#{msg.user-list.username}">NombreUsuario</th>
-                <th th:text="#{msg.user-list.passwordHash}">PasswordHash</th>
-                <th th:text="#{msg.user-list.active}">Activo</th>
-                <th th:text="#{msg.user-list.accountNonLocked}">Bloqueado</th>
-                <th th:text="#{msg.user-list.lastPasswordChange}">UltimoCambioContraseña</th>
-                <th th:text="#{msg.user-list.passwordExpiresAt}">ExpiraciónContraseña</th>
-                <th th:text="#{msg.user-list.failedLoginAttempts}">LoginFallidos</th>
-                <th th:text="#{msg.user-list.emailVerified}">Email</th>
-                <th th:text="#{msg.user-list.mustChangePassword}">CambiarContraseña</th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='id', sortDir=${sortField == 'id'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.id}"></span>
+                        <span class="ms-1" th:if="${sortField == 'id'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='username', sortDir=${sortField == 'username'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.username}"></span>
+                        <span class="ms-1" th:if="${sortField == 'username'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='passwordHash', sortDir=${sortField == 'passwordHash'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.passwordHash}"></span>
+                        <span class="ms-1" th:if="${sortField == 'passwordHash'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='accountNonLocked', sortDir=${sortField == 'accountNonLocked'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.accountNonLocked}"></span>
+                        <span class="ms-1" th:if="${sortField == 'accountNonLocked'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='active', sortDir=${sortField == 'active'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.active}"></span>
+                        <span class="ms-1" th:if="${sortField == 'active'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='lastPasswordChange', sortDir=${sortField == 'lastPasswordChange'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.lastPasswordChange}"></span>
+                        <span class="ms-1" th:if="${sortField == 'lastPasswordChange'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='passwordExpiresAt', sortDir=${sortField == 'passwordExpiresAt'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.passwordExpiresAt}"></span>
+                        <span class="ms-1" th:if="${sortField == 'passwordExpiresAt'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='failedLoginAttempts', sortDir=${sortField == 'failedLoginAttempts'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.failedLoginAttempts}"></span>
+                        <span class="ms-1" th:if="${sortField == 'failedLoginAttempts'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='emailVerified', sortDir=${sortField == 'emailVerified'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.emailVerified}"></span>
+                        <span class="ms-1" th:if="${sortField == 'emailVerified'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none"
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='mustChangePassword', sortDir=${sortField == 'mustChangePassword'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.mustChangePassword}"></span>
+                        <span class="ms-1" th:if="${sortField == 'mustChangePassword'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                    </a>
+                </th>
                 <th th:text="#{msg.user-list.actions}">Acciones</th>
             </tr>
             </thead>
@@ -45,15 +105,19 @@
                 <td th:text="${user.id}"></td>
                 <td th:text="${user.username}"></td>
                 <td th:text="${user.passwordHash}"></td>
-                <td th:text="${user.active}"></td>
                 <td th:text="${user.accountNonLocked}"></td>
+                <td th:text="${user.active}"></td>
                 <td th:text="${user.lastPasswordChange}"></td>
                 <td th:text="${user.passwordExpiresAt}"></td>
                 <td th:text="${user.failedLoginAttempts}"></td>
                 <td th:text="${user.emailVerified}"></td>
                 <td th:text="${user.mustChangePassword}"></td>
-
                 <td>
+                    <!-- Ver detalle -->
+                    <a th:href="@{/users/detail(id=${user.id})}"
+                       class="btn btn-outline-secondary btn-sm me-1"
+                       th:text="#{msg.user-list.viewDetail}"></a>
+
                     <a th:href="@{/users/edit(id=${user.id})}"
                        class="btn btn-primary btn-sm"
                        th:text="#{msg.user-list.edit}">
@@ -73,6 +137,41 @@
             </tbody>
         </table>
 
+        <div class="d-flex justify-content-between align-items-center mt-3" th:if="${totalPages > 0}">
+            <div>
+                <span th:text="#{msg.pagination.info(${currentPage} + 1, ${totalPages}, ${totalElements})}"></span>
+            </div>
+
+            <nav th:aria-label="#{msg.pagination.aria.label}">
+                <ul class="pagination mb-0">
+                    <!-- Página anterior -->
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/users(page=${currentPage - 1}, size=${pageSize}, sortField=${sortField}, sortDir=${sortDir})}"
+                           th:aria-label="#{msg.pagination.prev}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Números de página -->
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i} == ${currentPage} ? ' active'">
+                        <a class="page-link"
+                           th:text="${i + 1}"
+                           th:href="@{/users(page=${i}, size=${pageSize}, sortField=${sortField}, sortDir=${sortDir})}"></a>
+                    </li>
+
+                    <!-- Página siguiente -->
+                    <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/users(page=${currentPage + 1}, size=${pageSize}, sortField=${sortField}, sortDir=${sortDir})}"
+                           th:aria-label="#{msg.pagination.next}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
         <!-- Botón volver -->
         <a th:href="@{/}" class="btn btn-secondary" th:text="#{msg.user-form.returnback}">
             Volver al inicio
@@ -82,7 +181,6 @@
 
 <!-- Footer -->
 <footer th:replace="fragments/footer :: footer"></footer>
-
 <div th:replace="fragments/scripts :: scripts"></div>
 
 </body>

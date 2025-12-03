@@ -2,7 +2,9 @@ package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelal
 
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.daos.UserDAO;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.*;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.User;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.mappers.UserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,117 +24,167 @@ public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-
     @Autowired
     private UserDAO userDAO;
 
-    @GetMapping
-    public String listUsers(Model model){
-        logger.info("Solicitando lista de todos las usuarios");
-        List<User> listUsers = null;
-        try {
-            listUsers = userDAO.listAllUsers();
-            logger.info("Se han cargado {} usuarios",listUsers.size());
+    @Autowired
+    private MessageSource messageSource;
 
-        } catch (Exception e){
-            logger.error("Error al listar las usuarios.");
-            model.addAttribute("errorMessage", "Error al listar los mensajes");
+    @GetMapping
+    public String listUsers(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue="10") int size,
+            @RequestParam(name = "sortField", defaultValue = "name") String sortField,
+            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir,
+            Model model) {
+        logger.info("Solicitando la lista de usuarios... page={}, size={}, sortField={},sortDir={}", page, size,sortField,sortDir);
+        if (page < 0) page = 0;
+        if (size <= 0) size= 10;
+        try {
+            Long totalElements = userDAO.countUsers();
+            int totalPages = (int) Math.ceil((double) totalElements / size);
+            if (totalPages > 0 && page >= totalPages) {
+                page = totalPages - 1;
+            }
+            List<User> listUsers = userDAO.listUsersPage(page, size, sortField, sortDir);
+            List<UserDTO> listUsersDTOs = UserMapper.toDTOList(listUsers);
+            logger.info("Se han cargado {} usuarios en la página {}.", listUsersDTOs.size(), page);
+            model.addAttribute("listUsers", listUsersDTOs);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("pageSize", size);
+            model.addAttribute("totalPages", totalPages);
+            model.addAttribute("totalElements", totalElements);
+            model.addAttribute("sortField", sortField);
+            model.addAttribute("sortDir", sortDir);
+            model.addAttribute("reverseSortDir","asc".equalsIgnoreCase(sortDir) ? "desc" : "asc");
+        } catch (Exception e) {
+            logger.error("Error al listar las usuarios: {}", e.getMessage());
+            model.addAttribute("errorMessage", "Error al listar las usuarios.");
         }
-        model.addAttribute("listUsers", listUsers);
         return "views/user/user-list";
     }
 
     @GetMapping("/new")
-    public String showNewForm(Model model){
+    public String showNewForm(Model model) {
         logger.info("Mostrando formulario para nuevo usuario");
-        model.addAttribute("user", new User());
+        model.addAttribute("user", new UserCreateDTO());
         return "views/user/user-form";
     }
 
-
     @PostMapping("/insert")
-    public String insertUser(@Valid @ModelAttribute("user") User user, BindingResult result, RedirectAttributes redirectAttributes, Locale locale) {
-        logger.info("Insertando nueva región con código {}", user.getUsername());
+    public String insertUser(
+            @Valid @ModelAttribute("user") UserCreateDTO userDTO,
+            BindingResult result,
+            RedirectAttributes redirectAttributes,
+            Locale locale) {
+
+        logger.info("Insertando nuevo usuario con username {}", userDTO.getUsername());
+
         try {
             if (result.hasErrors()) {
                 return "views/user/user-form";
             }
-            if (userDAO.existsUserByCode(user.getUsername())) {
-                logger.warn("El código de la región {} ya existe.", user.getUsername());
-                String errorMessage = messageSource.getMessage("msg.user-controller.insert.usernameExist", null, locale);
+
+            if (userDAO.existsUserByCode(userDTO.getUsername())) {
+                logger.warn("El username {} ya existe.", userDTO.getUsername());
+                String errorMessage = messageSource.getMessage("msg.user-controller.insert.codeExist", null, locale);
                 redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-                return "redirect:/users/new";
+                return "redirect:/user/new";  // ← corregido
             }
+
+            User user = UserMapper.toEntity(userDTO);
             userDAO.insertUser(user);
-            logger.info("Región {} insertada con éxito.", user.getUsername());
+            logger.info("Usuario {} insertado con éxito.", userDTO.getUsername());
+
         } catch (Exception e) {
-            logger.error("Error al insertar la región {}: {}", user.getUsername(), e.getMessage());
+            logger.error("Error al insertar el usuario {}: {}", userDTO.getUsername(), e.getMessage());
             String errorMessage = messageSource.getMessage("msg.user-controller.insert.error", null, locale);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
         }
-        return "redirect:/users"; // Redirigir a la lista de usuarios
+
+        return "redirect:/users";
     }
-
-
 
     @GetMapping("/edit")
-    public String showEditForm(@RequestParam("id") Long id, Model model){
-        logger.info("Mostrando formulario de edicion para el usuario con ID {}", id);
+    public String showEditForm(@RequestParam("id") Long id, Model model) {
+        logger.info("Mostrando formulario de edicion para el user con ID {}", id);
         User user = null;
+        UserUpdateDTO userDTO = null;
         try {
             user = userDAO.getUsersById(id);
-            if(user == null){
-                logger.warn("No se encontró el usuario con ID {}", id);
+            if (user == null) {
+                logger.warn("No se encontró el user con ID {}", id);
             }
-        } catch (Exception e){
-            logger.error("Error al obtener el usuario con ID: {}", id, e.getMessage());
-            model.addAttribute("errorMessage"," error al obtener el usuario");
+            userDTO = UserMapper.toUpdateDTO(user);
+        } catch (Exception e) {
+            logger.error("Error al obtener el user con ID: {}", id, e.getMessage());
+            model.addAttribute("errorMessage", " error al obtener la user");
         }
-        model.addAttribute("user", user);
+        model.addAttribute("user", userDTO);
         return "views/user/user-form";
     }
+
     @PostMapping("/update")
-    public String updateUser(@ModelAttribute("user") User user, BindingResult result, RedirectAttributes redirectAttributes, Locale locale) {
+    public String updateUser(@Valid @ModelAttribute("user") UserUpdateDTO userDTO,
+                             BindingResult result,
+                             RedirectAttributes redirectAttributes,
+                             Locale locale) {
 
-
-        logger.info("Actualizando usuario con ID {}", user.getId());
-        try {
-            if (result.hasErrors()) {
-                return "views/user/user-form";
-            }
-            if (userDAO.existsUserByCodeAndNotId(user.getUsername(), user.getId())) {
-                logger.warn("El nombre del usuario {} ya existe para otro usuario.", user.getUsername());
-                String errorMessage = messageSource.getMessage("msg.user-controller.update.codeExist", null, locale);
-                redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-                return "redirect:/users/edit?id=" + user.getId();
-            }
-            userDAO.updateUser(user);
-            logger.info("Usuario con ID {} actualizada con éxito.", user.getId());
-        } catch (Exception e) {
-            logger.error("Error al actualizar el usuario con ID {}: {}", user.getId(), e.getMessage());
-            String errorMessage = messageSource.getMessage("msg.user-controller.update.error", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+        if (result.hasErrors()) {
+            return "views/user/user-form";
         }
-        return "redirect:/users"; // Redirigir a la lista de usuarios
+
+        User existingUser = userDAO.getUsersById(userDTO.getId());
+        if (existingUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Usuario no encontrado");
+            return "redirect:/users";
+        }
+
+        if (userDAO.existsUserByCodeAndNotId(userDTO.getUsername(), userDTO.getId())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Username ya existe");
+            return "redirect:/users/edit?id=" + userDTO.getId();
+        }
+
+        UserMapper.copyToExistingEntity(userDTO, existingUser);
+        userDAO.updateUser(existingUser);
+
+        return "redirect:/users";
     }
 
-
     @PostMapping("/delete")
-    public String deleteUser(@RequestParam("id") Long id, RedirectAttributes redirectAttributes){
-
-
+    public String deleteUser(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         logger.info("Eliminando usuario con ID {}", id);
         try {
             userDAO.deleteUser(id);
             logger.info("User con ID {} eliminada con exito", id);
-        } catch (Exception e){
-            logger.error("Error al eliminar la region con ID {}: {}", id, e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar la region");
-
+        } catch (Exception e) {
+            logger.error("Error al eliminar la user con ID {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar la user");
         }
         return "redirect:/users";
     }
-    @Autowired
-    private MessageSource messageSource;
-}
 
+    @GetMapping("/detail")
+    public String showDetail(@RequestParam("id") Long id,
+                             Model model,
+                             RedirectAttributes redirectAttributes,
+                             Locale locale) {
+        logger.info("Mostrando detalle de la región con ID {}", id);
+        try {
+            User user = userDAO.getUsersById(id);
+            if (user == null) {
+                String msg = messageSource.getMessage("msg.user-controller.detail.notFound", null, locale);
+                redirectAttributes.addFlashAttribute("errorMessage", msg);
+                return "redirect:/users";
+            }
+            UserDetailDTO userDTO = UserMapper.toDetailDTO(user);
+            model.addAttribute("user", userDTO);
+            return "views/user/user-detail";
+        } catch (Exception e) {
+            logger.error("Error al obtener el detalle de la región (: ", id, e.getMessage(), e);
+            String msg = messageSource.getMessage("msg.user-controller.detail.error", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            return "redirect:/users";
+        }
+    }
+}

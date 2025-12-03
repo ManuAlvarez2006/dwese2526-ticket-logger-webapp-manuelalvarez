@@ -19,20 +19,6 @@ INSERT IGNORE INTO regions (id, code, name) VALUES
 (17, '17', 'LA RIOJA'),
 (18, '18', 'CEUTA Y MELILLA');
 
-INSERT IGNORE INTO users (
-    id, username, passwordHash, active, accountNonLocked,
-    lastPasswordChange, passwordExpiresAt, failedLoginAttempts,
-    emailVerified, mustChangePassword
-) VALUES
-(1, 'admin', 'admin123', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
-
-(2, 'jdoe', '1234', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 1, FALSE, FALSE),
-
-(3, 'maria', 'changeme', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, TRUE),
-
-(4, 'blockeduser', 'secret', FALSE, FALSE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 5, FALSE, FALSE);
-
-
 -- Insertar datos de las provincias españolas con los códigos correctos
 INSERT IGNORE INTO provinces (code, name, region_id) VALUES
 ('01', 'Araba/Álava', 16),
@@ -87,3 +73,14 @@ INSERT IGNORE INTO provinces (code, name, region_id) VALUES
 ('50', 'Zaragoza', 2),
 ('51', 'Ceuta', 18),
 ('52', 'Melilla', 18);
+
+-- Inserta si no existe (ignora duplicados por UNIQUE username o id)
+INSERT IGNORE INTO users (
+    id, username, password_hash, active, account_non_locked,
+    last_password_change, password_expires_at, failed_login_attempts,
+    email_verified, must_change_password
+) VALUES
+(1, 'admin',        'admin123',  TRUE,  TRUE,  NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE,  FALSE),
+(2, 'jdoe',         '1234',      TRUE,  TRUE,  NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 1, FALSE, FALSE),
+(3, 'maria',        'changeme',  TRUE,  TRUE,  NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE,  TRUE ),
+(4, 'blockeduser',  'secret',    FALSE, FALSE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 5, FALSE, FALSE);
