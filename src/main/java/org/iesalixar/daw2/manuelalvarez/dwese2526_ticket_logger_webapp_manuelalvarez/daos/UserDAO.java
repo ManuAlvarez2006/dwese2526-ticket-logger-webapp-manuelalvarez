@@ -12,9 +12,9 @@ public interface UserDAO {
     void insertUser(User user) ;
     void updateUser(User user)  ;
     void deleteUser(Long id) ;
-    User getUsersById(Long id) ;
-    boolean existsUserByCode(String username) ;
-    boolean existsUserByCodeAndNotId(String Username, Long id) ;
+    User getUsersByEmail(String email) ;
+    boolean existsUserByEmail(String email) ;
+    boolean existsUserByEmailAndNotId(String email, Long id) ;
     List<User> listUsersPage(int page, int size, String sortField, String sortDir);
     long countUsers();
 

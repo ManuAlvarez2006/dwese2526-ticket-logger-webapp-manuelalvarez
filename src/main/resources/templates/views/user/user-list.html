@@ -35,9 +35,9 @@
                 </th>
                 <th>
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='username', sortDir=${sortField == 'username'} ? reverseSortDir : 'asc')}">
-                        <span th:text="#{msg.user.list.username}"></span>
-                        <span class="ms-1" th:if="${sortField == 'username'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
+                       th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='email', sortDir=${sortField == 'email'} ? reverseSortDir : 'asc')}">
+                        <span th:text="#{msg.user.list.email}"></span>
+                        <span class="ms-1" th:if="${sortField == 'email'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
                     </a>
                 </th>
                 <th>
@@ -103,7 +103,7 @@
             <tbody>
             <tr th:each="user : ${listUsers}">
                 <td th:text="${user.id}"></td>
-                <td th:text="${user.username}"></td>
+                <td th:text="${user.email}"></td>
                 <td th:text="${user.passwordHash}"></td>
                 <td th:text="${user.accountNonLocked}"></td>
                 <td th:text="${user.active}"></td>

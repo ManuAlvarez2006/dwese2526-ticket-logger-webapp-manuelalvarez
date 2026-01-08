@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 public class UserDTO {
     private long id;
-    private String username;
+    private String email;
     private String passwordHash;
     private Boolean accountNonLocked;
     private Boolean active;

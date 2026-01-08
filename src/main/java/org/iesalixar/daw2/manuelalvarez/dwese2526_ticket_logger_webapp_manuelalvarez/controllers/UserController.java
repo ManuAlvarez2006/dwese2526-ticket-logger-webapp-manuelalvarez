@@ -1,6 +1,7 @@
 package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.controllers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.daos.UserDAO;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.*;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.User;
@@ -78,15 +79,15 @@ public class UserController {
             RedirectAttributes redirectAttributes,
             Locale locale) {
 
-        logger.info("Insertando nuevo usuario con username {}", userDTO.getUsername());
+        logger.info("Insertando nuevo usuario con email {}", userDTO.getEmail());
 
         try {
             if (result.hasErrors()) {
                 return "views/user/user-form";
             }
 
-            if (userDAO.existsUserByCode(userDTO.getUsername())) {
-                logger.warn("El username {} ya existe.", userDTO.getUsername());
+            if (userDAO.existsUserByEmail(userDTO.getEmail())) {
+                logger.warn("El email {} ya existe.", userDTO.getEmail());
                 String errorMessage = messageSource.getMessage("msg.user-controller.insert.codeExist", null, locale);
                 redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
                 return "redirect:/user/new";  // ← corregido
@@ -94,10 +95,10 @@ public class UserController {
 
             User user = UserMapper.toEntity(userDTO);
             userDAO.insertUser(user);
-            logger.info("Usuario {} insertado con éxito.", userDTO.getUsername());
+            logger.info("Usuario {} insertado con éxito.", userDTO.getEmail());
 
         } catch (Exception e) {
-            logger.error("Error al insertar el usuario {}: {}", userDTO.getUsername(), e.getMessage());
+            logger.error("Error al insertar el usuario {}: {}", userDTO.getEmail(), e.getMessage());
             String errorMessage = messageSource.getMessage("msg.user-controller.insert.error", null, locale);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
         }
@@ -111,7 +112,7 @@ public class UserController {
         User user = null;
         UserUpdateDTO userDTO = null;
         try {
-            user = userDAO.getUsersById(id);
+            user = userDAO.getUsersByEmail(user.getEmail());
             if (user == null) {
                 logger.warn("No se encontró el user con ID {}", id);
             }
@@ -134,14 +135,14 @@ public class UserController {
             return "views/user/user-form";
         }
 
-        User existingUser = userDAO.getUsersById(userDTO.getId());
+        User existingUser = userDAO.getUsersByEmail(userDTO.getEmail());
         if (existingUser == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Usuario no encontrado");
             return "redirect:/users";
         }
 
-        if (userDAO.existsUserByCodeAndNotId(userDTO.getUsername(), userDTO.getId())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Username ya existe");
+        if (userDAO.existsUserByEmailAndNotId(userDTO.getEmail(), userDTO.getId())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Email ya existe");
             return "redirect:/users/edit?id=" + userDTO.getId();
         }
 
@@ -165,13 +166,13 @@ public class UserController {
     }
 
     @GetMapping("/detail")
-    public String showDetail(@RequestParam("id") Long id,
+    public String showDetail(@RequestParam("email") String email,
                              Model model,
                              RedirectAttributes redirectAttributes,
                              Locale locale) {
-        logger.info("Mostrando detalle de la región con ID {}", id);
+        logger.info("Mostrando detalle de la región con ID {}", email);
         try {
-            User user = userDAO.getUsersById(id);
+            User user = userDAO.getUsersByEmail(email);
             if (user == null) {
                 String msg = messageSource.getMessage("msg.user-controller.detail.notFound", null, locale);
                 redirectAttributes.addFlashAttribute("errorMessage", msg);
@@ -181,7 +182,7 @@ public class UserController {
             model.addAttribute("user", userDTO);
             return "views/user/user-detail";
         } catch (Exception e) {
-            logger.error("Error al obtener el detalle de la región (: ", id, e.getMessage(), e);
+            logger.error("Error al obtener el detalle del usuario (: ", email, e.getMessage(), e);
             String msg = messageSource.getMessage("msg.user-controller.detail.error", null, locale);
             redirectAttributes.addFlashAttribute("errorMessage", msg);
             return "redirect:/users";

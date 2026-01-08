@@ -19,41 +19,38 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "{msg.user.code.notEmpty}")
-    @Size(max = 15, message = "{msg.user.code.size}")
-    @Column(name = "username", nullable = false, length = 15)
-    private String username;
 
-    @NotEmpty(message = "{msg.user.passwordHash.notEmpty}")
-    @Size(max = 100, message = "{msg.user.passwordHash.notEmpty}")
-    @Column(name = "passwordHash", nullable = false, length = 100)
+    @Column(name = "email", nullable = false, unique = true, length = 40)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false, length = 500)
     private String passwordHash;
 
-    @Column(name = "accountNonLocked", nullable = false)
-    private Boolean accountNonLocked = true;
-
     @Column(name = "active", nullable = false)
-    private Boolean active = true;
+    private Boolean active = Boolean.TRUE;
 
-    @Column(name = "lastPasswordChange")
-    private LocalDateTime lastPasswordChange = LocalDateTime.now();
+    @Column(name = "account_non_locked", nullable = false)
+    private Boolean accountNonLocked = Boolean.TRUE;
 
-    @Column(name = "passwordExpiresAt")
-    private LocalDateTime passwordExpiresAt = LocalDateTime.now().plusDays(90);
+    @Column(name = "last_password_change")
+    private LocalDateTime lastPasswordChange;
 
-    @Column(name = "failedLoginAttempts", nullable = false)
+    @Column(name = "password_expires_at")
+    private LocalDateTime passwordExpiresAt;
+
+    @Column(name = "failed_login_attempts", nullable = false)
     private Integer failedLoginAttempts = 0;
 
-    @Column(name = "emailVerified", nullable = false)
-    private Boolean emailVerified = false;
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = Boolean.FALSE;
 
-    @Column(name = "mustChangePassword", nullable = false)
-    private Boolean mustChangePassword = true;
+    @Column(name = "must_change_password", nullable = false)
+    private Boolean mustChangePassword = Boolean.FALSE;
 
-    public User(String username, String passwordHash, Boolean active, Boolean accountNonLocked,
+    public User(String email, String passwordHash, Boolean active, Boolean accountNonLocked,
                 LocalDateTime lastPasswordChange, LocalDateTime passwordExpiresAt,
                 Integer failedLoginAttempts, Boolean emailVerified, Boolean mustChangePassword) {
-        this.username = username;
+        this.email = email;
         this.passwordHash = passwordHash;
         this.active = active;
         this.accountNonLocked = accountNonLocked;
@@ -64,9 +61,11 @@ public class User {
         this.mustChangePassword = mustChangePassword;
     }
 
-    public User(Long id, String username, String passwordHash) {
+    public User(Long id, String email, String passwordHash) {
         this.id = id;
-        this.username = username;
+        this.email = email;
         this.passwordHash = passwordHash;
     }
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserProfile profile;
 }

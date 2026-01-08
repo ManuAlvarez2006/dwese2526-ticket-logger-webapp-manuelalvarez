@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 public class UserDetailDTO {
     private long id;
-    private String username;
+    private String email;
     private String passwordHash;
     private Boolean accountNonLocked;
     private Boolean active;
@@ -23,5 +23,10 @@ public class UserDetailDTO {
     private Integer failedLoginAttempts;
     private Boolean emailVerified;
     private Boolean mustChangePassword;
-
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String profileImage;
+    private String bio;
+    private String locale;
 }
