@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+
 
 @Transactional
 @Repository
@@ -42,24 +44,22 @@ public class UserDAOImpl implements UserDAO{
     }
     @Override
     public void insertUser(User user) {
-        logger.info("Inserting user with username: {} , passwordHash: {} , accountNonLocked: {}, active: {} , lastPasswordChange: {} , passwordExpiresAt: {}, failedLoginAttempts: {}, emailVerified: {}, mustChangePassword: {}", user.getUsername(), user.getPasswordHash(), user.getAccountNonLocked(), user.getActive(),user.getLastPasswordChange(),user.getPasswordExpiresAt(),user.getFailedLoginAttempts(),user.getEmailVerified(),user.getMustChangePassword());
+        logger.info("Inserting user with email: {} , passwordHash: {} , accountNonLocked: {}, active: {} , lastPasswordChange: {} , passwordExpiresAt: {}, failedLoginAttempts: {}, emailVerified: {}, mustChangePassword: {}", user.getEmail(), user.getPasswordHash(), user.getAccountNonLocked(), user.getActive(),user.getLastPasswordChange(),user.getPasswordExpiresAt(),user.getFailedLoginAttempts(),user.getEmailVerified(),user.getMustChangePassword());
         if(user.getLastPasswordChange() != null){
             user.setPasswordExpiresAt(user.getLastPasswordChange().plusMonths(3));
         }
         entityManager.persist(user);
         logger.info("Inserted user succesful");
-
-
     }
 
     @Override
-    public boolean existsUserByCode(String username)  {
-        String hql = "SELECT COUNT(u) FROM User u WHERE UPPER(u.username) = :username";
+    public boolean existsUserByEmail(String email)  {
+        String hql = "SELECT COUNT(u) FROM User u WHERE UPPER(u.email) = :email";
         Long count = entityManager.createQuery(hql, Long.class)
-                .setParameter("username", username.toUpperCase())
+                .setParameter("email", email.toUpperCase())
                 .getSingleResult();
         boolean exists = count != null && count > 0;
-        logger.info("Region with username: {} exists: {}", username, exists);
+        logger.info("Region with email: {} exists: {}", email, exists);
         return exists;
 
     }
@@ -75,7 +75,7 @@ public class UserDAOImpl implements UserDAO{
         Path<?> sortPath;
         switch (sortField) {
             case "id" -> sortPath = root.get("id");
-            case "username" -> sortPath = root.get("username");
+            case "email" -> sortPath = root.get("email");
             case "passwordHash" -> sortPath = root.get("passwordHash");
             case "accountNonLocked" -> sortPath = root.get("accountNonLocked");
             case "active" -> sortPath = root.get("active");
@@ -85,8 +85,8 @@ public class UserDAOImpl implements UserDAO{
             case "emailVerified" -> sortPath = root.get("emailVerified");
             case "mustChangePassword" -> sortPath = root.get("mustChangePassword");
             default -> {
-                logger.warn("Unknown sortField '{}', defaulting to 'username'.", sortField);
-                sortPath = root.get("username");
+                logger.warn("Unknown sortField '{}', defaulting to 'email'.", sortField);
+                sortPath = root.get("email");
             }
         }
 // 3. Dirección de ordenación
@@ -106,6 +106,28 @@ public class UserDAOImpl implements UserDAO{
         String hql = "SELECT COUNT(u) FROM User u";
         Long total = entityManager.createQuery(hql, Long.class).getSingleResult();
         return (total != null) ? total : 0L;
+    }
+
+    @Override
+    public User getUserById(Long userId) {
+        logger.info("Retrieving user by id: ", userId);
+        User user = entityManager.find(User.class, userId);
+        if (user != null) {
+            logger.info("User retrieved: () {}", user.getEmail(), user.getPasswordHash()); }
+        else {
+            logger.warn("No user found with id: {}", userId);
+        }
+        return user;
+    }
+
+    @Override
+    public boolean existsUserByCode(String email) {
+        return false;
+    }
+
+    @Override
+    public boolean existsUserByCodeAndNotId(String email, Long id) {
+        return false;
     }
 
 
@@ -130,27 +152,26 @@ public class UserDAOImpl implements UserDAO{
         }
     }
 
-    @Override
-    public User getUsersById(Long id) {
-        logger.info("Retrieving user by id: {}", id);
-        User user = entityManager.find(User.class, id);
-        if (user != null) {
-            logger.info("User retrieved: {} - {} - {} - {} - {} - {} - {} - {} - {}", user.getUsername(), user.getPasswordHash(), user.getAccountNonLocked(),user.getActive(),user.getLastPasswordChange(),user.getPasswordExpiresAt(),user.getFailedLoginAttempts(),user.getEmailVerified(),user.getMustChangePassword());
-        } else {
-            logger.warn("No user found with id: {}", id);
-        }
-        return user;
+
+    public User getUsersByEmail (String email) {
+        if (email == null) return null;
+        String jpql = "SELECT u FROM User u WHERE u.email = :email";
+        return entityManager.createQuery(jpql, User.class)
+        .setParameter("email", email)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
     }
     @Override
-    public boolean existsUserByCodeAndNotId(String username, Long id){
-        logger.info("Checking if user with username: {} exists excluding id: {}", username, id);
-        String hql = "SELECT COUNT(u) FROM User u WHERE UPPER(u.username) = :username AND u.id <> :id";
+    public boolean existsUserByEmailAndNotId(String email, Long id){
+        logger.info("Checking if user with email: {} exists excluding id: {}", email, id);
+        String hql = "SELECT COUNT(u) FROM User u WHERE UPPER(u.email) = :email AND u.id <> :id";
         Long count = entityManager.createQuery(hql, Long.class)
-                .setParameter("username", username.toUpperCase())
+                .setParameter("email", email.toUpperCase())
                 .setParameter("id", id)
                 .getSingleResult();
         boolean exists = count != null && count > 0;
-        logger.info("Username with username {} exists: {}", username, exists);
+        logger.info("Username with email {} exists: {}", email, exists);
         return exists;
     }
 }

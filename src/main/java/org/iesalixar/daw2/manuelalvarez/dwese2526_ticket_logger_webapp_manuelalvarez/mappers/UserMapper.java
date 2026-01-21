@@ -2,6 +2,7 @@ package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelal
 
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.*;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.User;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.UserProfile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,7 +13,7 @@ public class UserMapper {
         if (entity == null) return null;
         UserDTO dto = new UserDTO();
         dto.setId(entity.getId());
-        dto.setUsername(entity.getUsername());
+        dto.setEmail(entity.getEmail());
         dto.setPasswordHash(entity.getPasswordHash());
         dto.setAccountNonLocked(entity.getAccountNonLocked());
         dto.setActive(entity.getActive());
@@ -36,7 +37,7 @@ public class UserMapper {
         if (entity == null) return null;
         UserDetailDTO dto = new UserDetailDTO();
         dto.setId(entity.getId());
-        dto.setUsername(entity.getUsername());
+        dto.setUsername(entity.getEmail());
         dto.setPasswordHash(entity.getPasswordHash());
         dto.setAccountNonLocked(entity.getAccountNonLocked());
         dto.setActive(entity.getActive());
@@ -45,13 +46,21 @@ public class UserMapper {
         dto.setFailedLoginAttempts(entity.getFailedLoginAttempts());
         dto.setEmailVerified(entity.getEmailVerified());
         dto.setMustChangePassword(entity.getMustChangePassword());
+        UserProfile profile = entity.getProfile();
+        if (profile != null) {
+            dto.setFirstName (profile.getFirstName()); dto.setLastName (profile.getLastName()); dto.setPhoneNumber (profile.getPhoneNumber());
+            dto.setProfileImage(profile.getProfileImage()); dto.setBio (profile.getBio());
+            dto.setLocale (profile.getLocale());
+        }
         return dto;
     }
+
+
     public static UserUpdateDTO toUpdateDTO(User entity) {
         if (entity == null) return null;
         UserUpdateDTO dto = new UserUpdateDTO();
         dto.setId(entity.getId());
-        dto.setUsername(entity.getUsername());
+        dto.setEmail(entity.getEmail());
         dto.setPasswordHash(entity.getPasswordHash());
         dto.setAccountNonLocked(entity.getAccountNonLocked());
         dto.setActive(entity.getActive());
@@ -67,7 +76,7 @@ public class UserMapper {
         if (dto == null) return null;
 
         User user = new User();
-        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
         user.setPasswordHash(dto.getPasswordHash());
 
         user.setActive(dto.getActive() != null ? dto.getActive() : true);
@@ -86,7 +95,7 @@ public class UserMapper {
 
         User user = new User();
         user.setId(dto.getId());
-        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
         user.setPasswordHash(dto.getPasswordHash());
         user.setActive(dto.getActive() != null ? dto.getActive() : true);
         user.setAccountNonLocked(dto.getAccountNonLocked() != null ? dto.getAccountNonLocked() : true);
@@ -100,7 +109,7 @@ public class UserMapper {
     }
     public static void copyToExistingEntity(UserUpdateDTO dto, User entity) {
         if (dto == null || entity == null) return;
-        entity.setUsername(dto.getUsername());
+        entity.setEmail(dto.getEmail());
         entity.setPasswordHash(dto.getPasswordHash());
         entity.setAccountNonLocked(dto.getAccountNonLocked());
         entity.setActive(dto.getActive());

@@ -14,7 +14,7 @@ public class UserUpdateDTO {
 
     @NotBlank
     @Size(max = 15)
-    private String username;
+    private String email;
 
     @NotBlank
     @Size(max = 100)

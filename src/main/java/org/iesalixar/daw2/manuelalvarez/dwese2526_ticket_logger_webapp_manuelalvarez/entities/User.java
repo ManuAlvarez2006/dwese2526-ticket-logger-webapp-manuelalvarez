@@ -5,10 +5,12 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Data
+@ToString(exclude = "profile")
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -19,10 +21,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "{msg.user.code.notEmpty}")
-    @Size(max = 15, message = "{msg.user.code.size}")
-    @Column(name = "username", nullable = false, length = 15)
-    private String username;
+    @NotEmpty(message = "{msg.user.email.notEmpty}")
+    @Size(max = 15, message = "{msg.user.email.size}")
+    @Column(name = "email", nullable = false, length = 15)
+    private String email;
 
     @NotEmpty(message = "{msg.user.passwordHash.notEmpty}")
     @Size(max = 100, message = "{msg.user.passwordHash.notEmpty}")
@@ -50,10 +52,10 @@ public class User {
     @Column(name = "mustChangePassword", nullable = false)
     private Boolean mustChangePassword = true;
 
-    public User(String username, String passwordHash, Boolean active, Boolean accountNonLocked,
+    public User(String email, String passwordHash, Boolean active, Boolean accountNonLocked,
                 LocalDateTime lastPasswordChange, LocalDateTime passwordExpiresAt,
                 Integer failedLoginAttempts, Boolean emailVerified, Boolean mustChangePassword) {
-        this.username = username;
+        this.email = email;
         this.passwordHash = passwordHash;
         this.active = active;
         this.accountNonLocked = accountNonLocked;
@@ -64,9 +66,11 @@ public class User {
         this.mustChangePassword = mustChangePassword;
     }
 
-    public User(Long id, String username, String passwordHash) {
+    public User(Long id, String email, String passwordHash) {
         this.id = id;
-        this.username = username;
+        this.email = email;
         this.passwordHash = passwordHash;
     }
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserProfile profile;
 }

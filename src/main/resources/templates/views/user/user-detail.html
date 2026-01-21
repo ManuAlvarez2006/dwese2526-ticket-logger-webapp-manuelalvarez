@@ -8,51 +8,105 @@
 <main class="form-page">
     <div class="form-card">
 
-        <!-- Título: Detalle Usuario: {username} -->
+        <!-- Título -->
         <h1>
             <span th:text="#{msg.user-detail.title}">Detalle Usuario</span>:
-            <span th:text="${user.username}"></span>
+            <span th:text="${user.email}"></span>
         </h1>
 
-        <!-- Datos básicos del usuario -->
+        <!-- Datos básicos -->
         <div class="mt-3">
             <h2 class="h5" th:text="#{msg.user-detail.section.userData}">Datos del Usuario</h2>
-            <dl class="row">
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.id}">ID</dt>
+            <dl class="row">
+                <dt class="col-sm-3">ID</dt>
                 <dd class="col-sm-9" th:text="${user.id}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.username}">Nombre de Usuario</dt>
-                <dd class="col-sm-9" th:text="${user.username}"></dd>
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9" th:text="${user.email}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.passwordHash}">Contraseña</dt>
-                <dd class="col-sm-9" th:text="${user.passwordHash}"></dd>
-
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.accountNonLocked}">Cuenta Desbloqueada</dt>
+                <dt class="col-sm-3">Cuenta desbloqueada</dt>
                 <dd class="col-sm-9" th:text="${user.accountNonLocked}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.active}">Activo</dt>
+                <dt class="col-sm-3">Activo</dt>
                 <dd class="col-sm-9" th:text="${user.active}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.lastPasswordChange}">Último Cambio de Contraseña</dt>
+                <dt class="col-sm-3">Último cambio de contraseña</dt>
                 <dd class="col-sm-9" th:text="${user.lastPasswordChange}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.passwordExpiresAt}">Contraseña Expira En</dt>
+                <dt class="col-sm-3">Contraseña expira</dt>
                 <dd class="col-sm-9" th:text="${user.passwordExpiresAt}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.failedLoginAttempts}">Intentos Fallidos</dt>
+                <dt class="col-sm-3">Intentos fallidos</dt>
                 <dd class="col-sm-9" th:text="${user.failedLoginAttempts}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.emailVerified}">Correo Verificado</dt>
+                <dt class="col-sm-3">Email verificado</dt>
                 <dd class="col-sm-9" th:text="${user.emailVerified}"></dd>
 
-                <dt class="col-sm-3" th:text="#{msg.user-detail.field.mustChangePassword}">Debe Cambiar Contraseña</dt>
+                <dt class="col-sm-3">Debe cambiar contraseña</dt>
                 <dd class="col-sm-9" th:text="${user.mustChangePassword}"></dd>
-
             </dl>
         </div>
 
-        <a th:href="@{/users}" class="btn btn-secondary mt-3" th:text="#{msg.user-detail.button.back}">Volver al listado</a>
+        <!-- Perfil -->
+        <div class="mt-4">
+
+            <h2 class="h5" th:text="#{msg.user-detail.section.profileData}">
+                Perfil del usuario
+            </h2>
+
+            <!-- Sin perfil -->
+            <div th:if="${user.profile == null}" class="alert alert-info"
+                 th:text="#{msg.user-detail.profile.empty}">
+                Este usuario no tiene perfil asociado.
+            </div>
+
+            <!-- Con perfil -->
+            <div th:if="${user.profile != null}">
+                <dl class="row">
+
+                    <dt class="col-sm-3">Nombre</dt>
+                    <dd class="col-sm-9" th:text="${user.profile.firstName}"></dd>
+
+                    <dt class="col-sm-3">Apellidos</dt>
+                    <dd class="col-sm-9" th:text="${user.profile.lastName}"></dd>
+
+                    <dt class="col-sm-3">Teléfono</dt>
+                    <dd class="col-sm-9" th:text="${user.profile.phoneNumber}"></dd>
+
+                    <dt class="col-sm-3">Idioma</dt>
+                    <dd class="col-sm-9" th:text="${user.profile.locale}"></dd>
+
+                    <dt class="col-sm-3">Bio</dt>
+                    <dd class="col-sm-9" th:text="${user.profile.bio}"></dd>
+
+                    <dt class="col-sm-3">Imagen</dt>
+                    <dd class="col-sm-9">
+                        <div th:if="${user.profile.profileImage == null}">
+                            <span class="text-muted"
+                                  th:text="#{msg.user-detail.profile.noImage}">
+                                Sin imagen
+                            </span>
+                        </div>
+
+                        <div th:if="${user.profile.profileImage != null}">
+                            <img th:src="@{${user.profile.profileImage}}"
+                                 alt="Foto perfil"
+                                 class="img-thumbnail rounded"
+                                 style="max-width: 150px;" />
+                        </div>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Volver -->
+        <a th:href="@{/users}"
+           class="btn btn-secondary mt-3"
+           th:text="#{msg.user-detail.button.back}">
+            Volver al listado
+        </a>
+
     </div>
 </main>
 

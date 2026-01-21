@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.User;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.UserProfile;
 
 import java.time.LocalDateTime;
 
@@ -23,5 +25,11 @@ public class UserDetailDTO {
     private Integer failedLoginAttempts;
     private Boolean emailVerified;
     private Boolean mustChangePassword;
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String profileImage;
+    private String bio;
+    private String locale;
 
 }
