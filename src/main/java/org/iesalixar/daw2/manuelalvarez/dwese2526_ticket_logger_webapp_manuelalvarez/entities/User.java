@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @ToString(exclude = "profile")
@@ -22,8 +24,8 @@ public class User {
     private Long id;
 
     @NotEmpty(message = "{msg.user.email.notEmpty}")
-    @Size(max = 15, message = "{msg.user.email.size}")
-    @Column(name = "email", nullable = false, length = 15)
+    @Size(max = 50, message = "{msg.user.email.size}")
+    @Column(name = "email", nullable = false, length = 50)
     private String email;
 
     @NotEmpty(message = "{msg.user.passwordHash.notEmpty}")
@@ -73,4 +75,13 @@ public class User {
     }
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private UserProfile profile;
+
+    @ManyToMany (fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_roles",
+    joinColumns= @JoinColumn(name = "user_id", referencedColumnName = "id"),
+    inverseJoinColumns= @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
+
+    private Set<Role> roles = new HashSet<>();
 }

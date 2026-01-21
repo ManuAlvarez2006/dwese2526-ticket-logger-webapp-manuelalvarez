@@ -36,7 +36,7 @@
                 <th>
                     <a class="text-decoration-none"
                        th:href="@{/users(page=${currentPage}, size=${pageSize}, sortField='email', sortDir=${sortField == 'email'} ? reverseSortDir : 'asc')}">
-                        <span th:text="#{msg.user.list.email}"></span>
+                        <span th:text="#{msg.user.list.email_en}"></span>
                         <span class="ms-1" th:if="${sortField == 'email'}" th:text="${sortDir == 'asc'} ? '▼' : '▲'"></span>
                     </a>
                 </th>
@@ -98,6 +98,8 @@
                 </th>
                 <th th:text="#{msg.user-list.actions}">Acciones</th>
             </tr>
+
+
             </thead>
 
             <tbody>
@@ -112,6 +114,10 @@
                 <td th:text="${user.failedLoginAttempts}"></td>
                 <td th:text="${user.emailVerified}"></td>
                 <td th:text="${user.mustChangePassword}"></td>
+
+                <!-- Roles -->
+                <th th:text="#{msg.user-list.col.roles}">Roles</th>
+                <td th:text="${#lists.isEmpty(user.roles)} ? '-' : ${#strings.listJoin(user.roles, ', ')}"></td>
                 <td>
                     <!-- Ver detalle -->
                     <a th:href="@{/users/detail(id=${user.id})}"

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -23,5 +24,6 @@ public class UserDTO {
     private Integer failedLoginAttempts;
     private Boolean emailVerified;
     private Boolean mustChangePassword;
+    private Set<String> roles;
 
 }

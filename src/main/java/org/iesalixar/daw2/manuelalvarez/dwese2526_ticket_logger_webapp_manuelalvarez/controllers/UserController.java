@@ -1,6 +1,7 @@
 package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.controllers;
 
 import jakarta.validation.Valid;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.daos.RoleDAO;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.daos.UserDAO;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.*;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.User;
@@ -15,6 +16,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,8 +27,13 @@ public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
+
+    private static final int PASSWORD_EXPIRY_DAYS = 90;
     @Autowired
     private UserDAO userDAO;
+
+    @Autowired
+    private RoleDAO roleDAO;
 
     @Autowired
     private MessageSource messageSource;
@@ -68,6 +76,8 @@ public class UserController {
     public String showNewForm(Model model) {
         logger.info("Mostrando formulario para nuevo usuario");
         model.addAttribute("user", new UserCreateDTO());
+
+        model.addAttribute("allRoles", roleDAO.listAllRoles());
         return "views/user/user-form";
     }
 
@@ -82,14 +92,14 @@ public class UserController {
         logger.info("Insertando nuevo usuario con email {}", userDTO.getEmail());
 
         try {
-            // 1️⃣ Validación
+            // 1️ Validación
             if (result.hasErrors()) {
-                model.addAttribute("user", userDTO); // 🔹 crucial para Thymeleaf
+                model.addAttribute("allRoles", roleDAO.listAllRoles());
                 return "views/user/user-form";
             }
 
             // 2️⃣ Comprobar si el usuario ya existe
-            if (userDAO.existsUserByCode(userDTO.getEmail())) {
+            if (userDAO.existsUserByEmail(userDTO.getEmail())) {
                 logger.warn("El email {} ya existe.", userDTO.getEmail());
                 String errorMessage = messageSource.getMessage(
                         "msg.user-controller.insert.codeExist",
@@ -99,9 +109,20 @@ public class UserController {
                 redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
                 return "redirect:/users/new"; // 🔹 corregido
             }
+            // >>> AUTOCÁLCULO de passwordExpiresAt (no viene de la vista)
+            LocalDateTime lastPasswordChange = userDTO.getLastPasswordChange();
+            if (lastPasswordChange == null) {
+                lastPasswordChange = LocalDateTime.now();
+                userDTO.setLastPasswordChange(lastPasswordChange);
+            }
+            LocalDateTime passwordExpiresAt = lastPasswordChange.plusDays(PASSWORD_EXPIRY_DAYS);
+            userDTO.setPasswordExpiresAt(passwordExpiresAt);
 
-            // 3️⃣ Convertir DTO a entidad e insertar
-            User user = UserMapper.toEntity(userDTO);
+            // Obtener de la base de datos los roles desde roleIds que es lo que llega de la vista
+            var roles = new HashSet<>(roleDAO.findAllByIds(userDTO.getRoleIds()));
+
+
+            User user = UserMapper.toEntity(userDTO, roles);
             userDAO.insertUser(user);
             logger.info("Usuario {} insertado con éxito.", userDTO.getEmail());
 
@@ -136,6 +157,9 @@ public class UserController {
             model.addAttribute("errorMessage", " error al obtener la user");
         }
         model.addAttribute("user", userDTO);
+
+        model.addAttribute("allRoles", roleDAO.listAllRoles());
+
         return "views/user/user-form";
     }
 
@@ -145,26 +169,66 @@ public class UserController {
                              RedirectAttributes redirectAttributes,
                              Locale locale) {
 
-        if (result.hasErrors()) {
-            return "views/user/user-form";
-        }
+        logger.info("Actualizando usuario con ID {}", userDTO.getId());
 
-        User existingUser = userDAO.getUserById(userDTO.getId());
-        if (existingUser == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Usuario no encontrado");
-            return "redirect:/users";
-        }
+        try {
+            // 1️⃣ Validación de formulario
+            if (result.hasErrors()) {
+                return "views/user/user-form";
+            }
 
-        if (userDAO.existsUserByCodeAndNotId(userDTO.getEmail(), userDTO.getId())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Username ya existe");
-            return "redirect:/users/edit?id=" + userDTO.getId();
-        }
+            // 2️⃣ Comprobar que el email no existe para otro usuario
+            if (userDAO.existsUserByEmailAndNotId(userDTO.getEmail(), userDTO.getId())) {
+                logger.warn("El email {} ya existe para otro usuario.", userDTO.getEmail());
+                String errorMessage = messageSource.getMessage(
+                        "msg.user-controller.update.emailExist",
+                        null,
+                        locale
+                );
+                redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+                return "redirect:/users/edit?id=" + userDTO.getId();
+            }
 
-        UserMapper.copyToExistingEntity(userDTO, existingUser);
-        userDAO.updateUser(existingUser);
+            // 3️⃣ Obtener la entidad existente
+            User existingUser = userDAO.getUserById(userDTO.getId());
+            if (existingUser == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Usuario no encontrado");
+                return "redirect:/users";
+            }
+
+            // 4️⃣ Autocalcular passwordExpiresAt si no viene
+            LocalDateTime lastPasswordChange = userDTO.getLastPasswordChange();
+            if (lastPasswordChange == null) {
+                lastPasswordChange = LocalDateTime.now();
+                userDTO.setLastPasswordChange(lastPasswordChange);
+            }
+            LocalDateTime passwordExpiresAt = lastPasswordChange.plusDays(PASSWORD_EXPIRY_DAYS);
+            userDTO.setPasswordExpiresAt(passwordExpiresAt);
+
+            // 5️⃣ Obtener roles desde la base de datos según roleIds
+            var roles = new HashSet<>(roleDAO.findAllByIds(userDTO.getRoleIds()));
+
+            // 6️⃣ Copiar los datos del DTO en la entidad existente
+            UserMapper.copyToExistingEntity(userDTO, existingUser);
+            existingUser.setRoles(roles);
+
+            // 7️⃣ Guardar cambios
+            userDAO.updateUser(existingUser);
+            logger.info("Usuario con ID {} actualizado correctamente.", userDTO.getId());
+
+        } catch (Exception e) {
+            logger.error("Error al actualizar el usuario con ID {}: {}", userDTO.getId(), e.getMessage(), e);
+            String errorMessage = messageSource.getMessage(
+                    "msg.user-controller.update.error",
+                    null,
+                    locale
+            );
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+        }
 
         return "redirect:/users";
     }
+
 
     @PostMapping("/delete")
     public String deleteUser(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {

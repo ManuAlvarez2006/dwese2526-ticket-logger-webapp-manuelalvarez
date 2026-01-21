@@ -84,3 +84,20 @@ INSERT IGNORE INTO users (
 (2, 'jdoe@app.local',         '1234',      TRUE,  TRUE,  NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 1, FALSE, FALSE),
 (3, 'maria@app.local',        'changeme',  TRUE,  TRUE,  NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE,  TRUE ),
 (4, 'blockeduser@app.local',  'secret',    FALSE, FALSE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 5, FALSE, FALSE);
+
+-- Insertar los roles
+INSERT IGNORE INTO roles (id, name, display_name, description) VALUES
+(1, 'ROLE_ADMIN', 'Administrator', 'Acceso total a todas las funcionalidades del sistema'),
+(2, 'ROLE_USER', 'User', 'Usuario estándar'),
+(3, 'ROLE_MANAGER', 'Manager', 'Usuario gestor de la aplicación tiene acceso a las funcionalidades de gestión de datos');
+
+
+INSERT IGNORE INTO user_roles (user_id, role_id) VALUES
+-- Usuario 1: admin completo
+(1, 1),  -- ROLE_ADMIN
+(1, 2),  -- ROLE_USER
+-- Usuario 2: usuario estándar
+(2, 2),  -- ROLE_USER
+-- Usuario 3: manager con permisos de usuario
+(3, 3),  -- ROLE_MANAGER
+(3, 2);  -- ROLE_USER

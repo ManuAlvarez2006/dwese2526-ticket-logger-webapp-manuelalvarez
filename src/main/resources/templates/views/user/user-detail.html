@@ -50,47 +50,43 @@
 
         <!-- Perfil -->
         <div class="mt-4">
-
-            <h2 class="h5" th:text="#{msg.user-detail.section.profileData}">
-                Perfil del usuario
-            </h2>
+            <h2 class="h5" th:text="#{msg.user-detail.section.profileData}">Perfil del usuario</h2>
 
             <!-- Sin perfil -->
-            <div th:if="${user.profile == null}" class="alert alert-info"
+            <div th:if="${user.firstName == null and user.lastName == null}" class="alert alert-info"
                  th:text="#{msg.user-detail.profile.empty}">
                 Este usuario no tiene perfil asociado.
             </div>
 
             <!-- Con perfil -->
-            <div th:if="${user.profile != null}">
+            <div th:if="${user.firstName != null or user.lastName != null}">
                 <dl class="row">
 
                     <dt class="col-sm-3">Nombre</dt>
-                    <dd class="col-sm-9" th:text="${user.profile.firstName}"></dd>
+                    <dd class="col-sm-9" th:text="${user.firstName}"></dd>
 
                     <dt class="col-sm-3">Apellidos</dt>
-                    <dd class="col-sm-9" th:text="${user.profile.lastName}"></dd>
+                    <dd class="col-sm-9" th:text="${user.lastName}"></dd>
 
                     <dt class="col-sm-3">Teléfono</dt>
-                    <dd class="col-sm-9" th:text="${user.profile.phoneNumber}"></dd>
+                    <dd class="col-sm-9" th:text="${user.phoneNumber}"></dd>
 
                     <dt class="col-sm-3">Idioma</dt>
-                    <dd class="col-sm-9" th:text="${user.profile.locale}"></dd>
+                    <dd class="col-sm-9" th:text="${user.locale}"></dd>
 
                     <dt class="col-sm-3">Bio</dt>
-                    <dd class="col-sm-9" th:text="${user.profile.bio}"></dd>
+                    <dd class="col-sm-9" th:text="${user.bio}"></dd>
 
                     <dt class="col-sm-3">Imagen</dt>
                     <dd class="col-sm-9">
-                        <div th:if="${user.profile.profileImage == null}">
-                            <span class="text-muted"
-                                  th:text="#{msg.user-detail.profile.noImage}">
+                        <div th:if="${user.profileImage == null}">
+                            <span class="text-muted" th:text="#{msg.user-detail.profile.noImage}">
                                 Sin imagen
                             </span>
                         </div>
 
-                        <div th:if="${user.profile.profileImage != null}">
-                            <img th:src="@{${user.profile.profileImage}}"
+                        <div th:if="${user.profileImage != null}">
+                            <img th:src="@{${user.profileImage}}"
                                  alt="Foto perfil"
                                  class="img-thumbnail rounded"
                                  style="max-width: 150px;" />
@@ -98,6 +94,23 @@
                     </dd>
                 </dl>
             </div>
+        </div>
+
+        <!-- Roles del usuario -->
+        <div class="mt-4">
+            <h2 class="h5" th:text="#{msg.user-detail.field.roles}">Roles</h2>
+
+            <!-- Lista de roles si existen -->
+            <ul th:if="${user.roles != null and !#lists.isEmpty(user.roles)}" class="mb-0">
+                <li th:each="role : ${user.roles}" th:text="${role}">ROLE_X</li>
+            </ul>
+
+            <!-- Mensaje si no tiene roles -->
+            <span class="text-muted"
+                  th:if="${user.roles == null or #lists.isEmpty(user.roles)}"
+                  th:text="#{msg.user-detail.field.roles.empty}">
+                This user has no roles assigned.
+            </span>
         </div>
 
         <!-- Volver -->

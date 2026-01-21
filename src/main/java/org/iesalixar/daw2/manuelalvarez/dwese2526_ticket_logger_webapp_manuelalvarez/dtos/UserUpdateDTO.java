@@ -5,6 +5,8 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class UserUpdateDTO {
@@ -44,4 +46,7 @@ public class UserUpdateDTO {
 
     @NotNull
     private Boolean mustChangePassword = false;
+
+    @NotEmpty(message = "{msg.user.roles.notempty}")
+    private Set<Long> roleIds = new HashSet<>();
 }

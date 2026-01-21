@@ -8,6 +8,7 @@ import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalv
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.UserProfile;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 
 public class UserDetailDTO {
     private long id;
-    private String username;
+    private String email;
     private String passwordHash;
     private Boolean accountNonLocked;
     private Boolean active;
@@ -31,5 +32,7 @@ public class UserDetailDTO {
     private String profileImage;
     private String bio;
     private String locale;
+
+    private Set<String> roles;
 
 }
