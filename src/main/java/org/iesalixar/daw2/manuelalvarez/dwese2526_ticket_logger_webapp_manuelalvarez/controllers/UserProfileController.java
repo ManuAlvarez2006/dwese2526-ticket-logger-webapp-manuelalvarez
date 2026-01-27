@@ -1,8 +1,8 @@
 package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.controllers;
 
 import jakarta.validation.Valid;
-import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.daos.UserDAO;
-import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.daos.UserProfileDAO;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.repositories.UserRepository;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.repositories.UserProfileRepository;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.UserProfileFormDTO;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.User;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.UserProfile;
@@ -31,10 +31,10 @@ public class UserProfileController {
     private MessageSource messageSource;
 
     @Autowired
-    private UserDAO userDAO;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserProfileDAO userProfileDAO;
+    private UserProfileRepository userProfileRepository;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -45,11 +45,11 @@ public class UserProfileController {
         final String fixedEmail = "admin@app.local";
         logger.info("Mostrando formulario de perfil para el usuario fijo {}", fixedEmail);
 
-        User user = userDAO.getUsersByEmail(fixedEmail);
+        User user = userRepository.getUsersByEmail(fixedEmail);
         UserProfileFormDTO formDto;
 
         if (user != null) {
-            UserProfile profile = userProfileDAO.getUserProfileByUserId(user.getId());
+            UserProfile profile = userProfileRepository.getUserProfileByUserId(user.getId());
             formDto = UserProfileMapper.toFormDto(user, profile);
         } else {
             logger.warn("No se encontró el usuario con email {}", fixedEmail);
@@ -81,7 +81,7 @@ public class UserProfileController {
 
         try {
             Long userId = profileDto.getUserId();
-            User user = userDAO.getUserById(userId);
+            User user = userRepository.getUserById(userId);
 
             if (user == null) {
                 logger.warn("No se encontró el usuario con ID {}", userId);
@@ -91,7 +91,7 @@ public class UserProfileController {
                 return "redirect:/profile/edit";
             }
 
-            UserProfile profile = userProfileDAO.getUserProfileByUserId(userId);
+            UserProfile profile = userProfileRepository.getUserProfileByUserId(userId);
             boolean isNew = (profile == null);
             if (isNew) {
 // Crear un nuevo perfil a partir del DTO y el User
@@ -99,7 +99,7 @@ public class UserProfileController {
             } else {
                 UserProfileMapper.copyToExistingEntity(profileDto, profile);
             }
-            userProfileDAO.saveOrUpdateUserProfile(profile);
+            userProfileRepository.saveOrUpdateUserProfile(profile);
 
 // 4. Gestión de la imagen de perfil (si se ha subido una nueva)
             if (profileImageFile != null && !profileImageFile.isEmpty()) {
@@ -140,7 +140,7 @@ public class UserProfileController {
                 } else {
                     UserProfileMapper.copyToExistingEntity(profileDto, profile);
                 }
-                userProfileDAO.saveOrUpdateUserProfile(profile);
+                userProfileRepository.saveOrUpdateUserProfile(profile);
 // 5. Mensaje de éxito
             String successMessage = messageSource.getMessage("msg.userProfile.success", null, locale);
             redirectAttributes.addFlashAttribute("successMessage", successMessage);

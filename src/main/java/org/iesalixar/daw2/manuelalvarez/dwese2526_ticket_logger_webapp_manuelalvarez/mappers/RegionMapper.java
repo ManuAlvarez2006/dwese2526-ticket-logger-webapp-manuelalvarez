@@ -71,7 +71,7 @@ public class RegionMapper {
         e.setName(dto.getName());
         return e;
     }
-    public void copyToExistingEntity(RegionUpdateDTO dto, Region entity) {
+    public static void copyToExistingEntity(RegionUpdateDTO dto, Region entity) {
         if (dto == null || entity == null) return;
         entity.setCode(dto.getCode());
         entity.setName(dto.getName());
