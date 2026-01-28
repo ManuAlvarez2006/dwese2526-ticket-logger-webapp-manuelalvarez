@@ -48,5 +48,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByIdWithProvinces(@Param("id") Long id);
     @Override
     Optional<User> findById(Long id);
+
+    Optional<User> findRolesById(Long id);
 }
 

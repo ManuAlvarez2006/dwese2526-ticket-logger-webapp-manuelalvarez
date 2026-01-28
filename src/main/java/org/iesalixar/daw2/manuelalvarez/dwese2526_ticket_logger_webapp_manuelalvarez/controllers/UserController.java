@@ -229,7 +229,7 @@ public class UserController {
         logger.info("Mostrando detalle del usuario con ID {}", id);
 
         try {
-            Optional<User> userOpt = userRepository.findByIdWithRoles(id); // Ajusta el método según relaciones de User
+            Optional<User> userOpt = userRepository.findRolesById(id); // Ajusta el método según relaciones de User
 
             if (userOpt.isEmpty()) {
                 String msg = messageSource.getMessage("msg.user-controller.detail.notfound", null, locale);
