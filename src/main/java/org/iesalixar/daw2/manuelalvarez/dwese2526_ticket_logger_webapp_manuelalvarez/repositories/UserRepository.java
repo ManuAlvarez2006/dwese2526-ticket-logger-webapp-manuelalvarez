@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param email nombre de la región
      * @return true si existe; false si no
      */
-    boolean existsByUsername(String email);
+    boolean existsByEmail(String email);
 
     /**
      * Comprueba si existe una región con el código indicado excluyendo un id.
@@ -32,7 +32,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * Busca por id.
      * Equivalente a: getUserById(id), pero usando Optional para evitar null.
-     * @return Optional con la región si existe
      */
     /**
      * Recupera una {@link User} por su id cargando también sus {@code provinces) en la misma consulta.
@@ -50,5 +49,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findById(Long id);
 
     Optional<User> findRolesById(Long id);
+
+    Optional<User> findByEmail(String email);
 }
 

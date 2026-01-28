@@ -28,7 +28,7 @@ public interface ProvinceRepository  extends JpaRepository<Province, Long> {
      *
      * @param id   id que se excluye (normalmente el que estás editando)
      * @return true si existe otra provincia con ese código; false si n* */
-    boolean existsByCodeAndNotId(String code, Long id);
+    boolean existsByCodeAndIdNot(String code, Long id);
     /**
      * Busca por id.
      * Equivalente a: getProvinceById(id), pero usando Optional para evitar null.

@@ -141,7 +141,7 @@ public class ProvinceController {
             if (result.hasErrors()) {
                 return "views/province/province-form"; // mostrar errores de validación
             }
-            if (provinceRepository.existsByCodeAndNotId(provinceDTO.getCode(), provinceDTO.getId())) {
+            if (provinceRepository.existsByCodeAndIdNot(provinceDTO.getCode(), provinceDTO.getId())) {
                 logger.warn("El código de la región {} ya existe para otra región.", provinceDTO.getCode());
                 String errorMessage = messageSource.getMessage("msg.province-controller.update.codeExist", null, locale);
                 redirectAttributes.addFlashAttribute("errorMessage", errorMessage);

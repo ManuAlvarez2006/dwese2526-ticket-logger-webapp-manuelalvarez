@@ -2,6 +2,8 @@ package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelal
 
 import jakarta.validation.Valid;
 import org.apache.catalina.mapper.Mapper;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.exceptions.DuplicateResourceException;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.exceptions.ResourceNotFoundException;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.repositories.RegionRepository;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.RegionCreateDTO;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.RegionDTO;
@@ -9,6 +11,7 @@ import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalv
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.RegionUpdateDTO;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.Region;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.mappers.RegionMapper;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.services.RegionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,21 +44,24 @@ public class RegionController {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    private RegionService regionService;
+
     /**
      * Lista paginada de regiones usando el Pageable estándar de Spring Data.
      * La vista trabajará directamente con un objeto Page (contenido + metadatos).
      *
      * @param pageable paginación/ordenación (page, size, sort) resuelta automáticamente desde la URL * @param model
-    modelo para la vista
+     *                 modelo para la vista
      * @return plantilla Thyme leaf del listado
      */
     @GetMapping
     public String listRegions(
-            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction. ASC) Pageable pageable, Model model) {
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable, Model model) {
         logger.info("Listando regiones page={}, size={}, sort={}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
         try {
-            Page<RegionDTO> listRegionsDTOs = regionRepository.findAll(pageable).map(RegionMapper::toDTO);
+            Page<RegionDTO> listRegionsDTOs = regionService.list(pageable);
             logger.info("Se han cargado {} regiones en la página {}.",
                     listRegionsDTOs.getNumberOfElements(), listRegionsDTOs.getNumber());
             model.addAttribute("page", listRegionsDTOs);
@@ -82,149 +88,157 @@ public class RegionController {
 
 
     @PostMapping("/insert")
-    public String insertRegion (@Valid @ModelAttribute("region") RegionCreateDTO regionDTO,
-                                BindingResult result,
-                                RedirectAttributes redirectAttributes,
-                                Locale locale) {
+    public String insertRegion(@Valid @ModelAttribute("region") RegionCreateDTO regionDTO,
+                               BindingResult result,
+                               RedirectAttributes redirectAttributes,
+                               Locale locale) {
         logger.info("Insertando nueva región con código {}", regionDTO.getCode());
         try {
+// 1) Errores de validación del formulario (Bean Validation)
             if (result.hasErrors()) {
-                return "views/region/region-form"; // Devuelve el formulario para mostrar los errores de validación
+                return "views/region/region-form";
             }
-            if (regionRepository.existsByCode(regionDTO.getCode())) {
-                logger.warn("El código de la región {} ya existe.", regionDTO.getCode());
-                String errorMessage = messageSource.getMessage("msg.region-controller.insert.codeExist", null, locale);
-                redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-                return "redirect:/regions/new";
-            }
-            // Mapear DTO -> Entity y persistir
-            Region region = RegionMapper.toEntity(regionDTO);
-            regionRepository.save(region);
-            logger.info("Región {} insertada con éxito.", region.getCode());
+// Antes: comprobación + save en el controller
+// Ahora: el service aplica la regla del código único y persiste
+            regionService.create(regionDTO);
+            logger.info("Región {} insertada con éxito.", regionDTO.getCode());
+            return "redirect:/regions";
+
+        } catch (DuplicateResourceException ex) {
+// Caso "semántico": código duplicado
+            logger.warn("El código de la región {} ya existe.", regionDTO.getCode());
+            String errorMessage = messageSource.getMessage("msg.region-controller.insert.codeExist", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/regions/new";
+
         } catch (Exception e) {
-            logger.error("Error al insertar la región {}: {}", regionDTO.getCode(), e.getMessage());
+            logger.error("Error al insertar la región {}: {}", regionDTO.getCode(), e.getMessage(), e);
             String errorMessage = messageSource.getMessage("msg.region-controller.insert.error", null, locale);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/regions/new";
         }
-        return "redirect:/regions"; // Redirigir a la lista de regiones
     }
 
     @GetMapping("/edit")
-    public String showEditForm(@RequestParam("id") Long id, Model model, Locale locale) {
+    public String showEditForm(@RequestParam("id") Long id,
+                               Model model,
+                               RedirectAttributes redirectAttributes,
+                               Locale locale) {
         logger.info("Mostrando formulario de edición para la región con ID {}", id);
-        Optional<Region> regionOpt;
-        RegionUpdateDTO regionDTO = null;
         try {
-// Spring Data: findById devuelve Optional
-            regionOpt = regionRepository.findById(id);
+// Antes: repositorio + mapper en el controller
+// Ahora: el service encapsula la búsqueda y el mapeo a DTO
+            RegionUpdateDTO regionDTO = regionService.getForedit(id);
 
-            if (regionOpt.isEmpty()) {
-                logger.warn("No se encontró la región con ID {}", id);
-                String msg = messageSource.getMessage("msg.region.error.notfound", new Object[]{id}, locale);
-                model.addAttribute("errorMessage", msg);
-            } else {
-                Region region = regionOpt.get();
-                regionDTO = RegionMapper.toUpdateDTO(region);
-            }
+            model.addAttribute("region", regionDTO);
+            return "views/region/region-form";
 
+        } catch (ResourceNotFoundException ex) {
+            logger.warn("No se encontró la región con ID {}", id);
+            String msg = messageSource.getMessage("msg.region.error.notfound", new Object[]{id}, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            return "redirect:/regions";
         } catch (Exception e) {
-            logger.error("Error al obtener la región con ID ): {}", id, e.getMessage(), e);
+            logger.error("Error al obtener la región con ID {}: {}", id, e.getMessage(), e);
             String msg = messageSource.getMessage("msg.region.error.load", null, locale);
-            model.addAttribute("errorMessage", msg);
+            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            return "redirect:/regions";
         }
-        model.addAttribute("region", regionDTO);
-        return "views/region/region-form";
     }
 
     @PostMapping("/update")
-    public String updateRegion(
-            @Valid @ModelAttribute("region") RegionUpdateDTO regionDTO, BindingResult result,
-            RedirectAttributes redirectAttributes,
-            Locale locale) {
+    public String updateRegion(@Valid @ModelAttribute("region") RegionUpdateDTO regionDTO,
+                               BindingResult result,
+                               RedirectAttributes redirectAttributes,
+                               Locale locale) {
         logger.info("Actualizando región con ID {}", regionDTO.getId());
         try {
+            // 1) Errores de validación del formulario (Bean Validation)
             if (result.hasErrors()) {
-                return "views/region/region-form"; // mostrar errores de validación
+                return "views/region/region-form";
             }
-                if (regionRepository.existsByCodeAndNotId(regionDTO.getCode(), regionDTO.getId())) {
-                    logger.warn("El código de la región {} ya existe para otra región.", regionDTO.getCode());
-                    String errorMessage = messageSource.getMessage("msg.region-controller.update.codeExist", null, locale);
-                    redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-                    return "redirect:/regions/edit?id=" + regionDTO.getId();
-                }
-                    // Cargar entidad existente (Spring Data -> Optional)
-                    Optional<Region> regionOpt = regionRepository.findById(regionDTO.getId());
-                    if (regionOpt.isEmpty()) {
-                        logger.warn("No se encontró la región con ID {}", regionDTO.getId());
-                        String notFound = messageSource.getMessage("msg.region-controller.detail.notFound", null, locale);
-                        redirectAttributes.addFlashAttribute("errorMessage", notFound);
-                        return "redirect:/regions";
-                    }
-                    Region region = regionOpt.get();
-                    RegionMapper.copyToExistingEntity(regionDTO, region);
-// Spring Data: save() actualiza si el id existe
-                    regionRepository.save(region);
-                    logger.info("Región con ID {} actualizada con éxito.", region.getId());
-                } catch(Exception e){
-                    logger.error("Error al actualizar la región con ID : {}", regionDTO.getId(), e.getMessage(), e);
-                    String errorMessage = messageSource.getMessage("msg.region-controller.update.error", null, locale);
-                    redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-                }
-                return "redirect:/regions";
+            // Antes: comprobación de duplicado findById save en el controller
+            // Ahora: el service aplica reglas (código único), comprueba existencia y actualiza
+            regionService.update(regionDTO);
+
+            logger.info("Región con ID {} actualizada con éxito.", regionDTO.getId());
+            return "redirect:/regions";
+        } catch (DuplicateResourceException ex) {
+            logger.warn("El código de la región {} ya existe para otra región.", regionDTO.getCode());
+            String errorMessage = messageSource.getMessage("msg.region-controller.update.codeExist", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/regions/edit?id=" + regionDTO.getId();
+        } catch (ResourceNotFoundException ex) {
+            logger.warn("No se encontró la región con ID {}", regionDTO.getId());
+            String notFound = messageSource.getMessage("msg.region-controller.detail.notfound", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", notFound);
+            return "redirect:/regions";
+        } catch (Exception e) {
+            logger.error("Error al actualizar la región con ID {}: {}", regionDTO.getId(), e.getMessage(), e);
+            String errorMessage = messageSource.getMessage("msg.region-controller.update.error", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/regions/edit?id=" + regionDTO.getId();
+        }
     }
+
     /**
      * Elimina una región de la base de datos.
-     * @param id
-    ID de la región a eliminar.
+     *
+     * @param id                 ID de la región a eliminar.
      * @param redirectAttributes Atributos para mensajes flash de redirección.
      * @return Redirección a la lista de regiones.
      */
+
+
     @PostMapping("/delete")
-    public String deleteRegion(
-            @RequestParam("id") Long id,
-            RedirectAttributes redirectAttributes,
-            Locale locale) {
+    public String deleteRegion(@RequestParam("id") Long id,
+                               RedirectAttributes redirectAttributes,
+                               Locale locale) {
         logger.info("Eliminando región con ID {}", id);
         try {
-// (Recomendable) comprobar existencia antes de borrar
-            Optional<Region> regionOpt = regionRepository.findById(id);
-            if (regionOpt.isEmpty()) {
-                logger.warn("No se encontró la región con ID {}", id);
-                String notFound = messageSource.getMessage("msg.region-controller.detail.notfound", null, locale);
-                redirectAttributes.addFlashAttribute("errorMessage", notFound);
-                return "redirect:/regions";
-            }
-            regionRepository.deleteById(id);
+            // Antes: comprobar existencia con repository y borrar en el controller
+            // Ahora: el service comprueba existencia y elimina (o lanza ResourceNotFoundException)
+            regionService.delete(id);
+
             logger.info("Región con ID {} eliminada con éxito.", id);
+            return "redirect:/regions";
+
+        } catch (ResourceNotFoundException ex) {
+            logger.warn("No se encontró la región con ID {}", id);
+            String notFound = messageSource.getMessage("msg.region-controller.detail.notfound", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", notFound);
+            return "redirect:/regions";
         } catch (Exception e) {
             logger.error("Error al eliminar la región con ID {}: {}", id, e.getMessage(), e);
             String errorMessage = messageSource.getMessage("msg.region-controller.delete.error", null, locale);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/regions";
         }
-        return "redirect:/regions"; // Redirigir a la lista de regiones
     }
+
     @GetMapping("/detail")
-    public String showDetail (@RequestParam("id") Long id,
-                              Model model,
-                              RedirectAttributes redirectAttributes,
-                              Locale locale) {
+    public String showDetail(@RequestParam("id") Long id,
+                             Model model,
+                             RedirectAttributes redirectAttributes,
+                             Locale locale) {
         logger.info("Mostrando detalle de la región con ID {}", id);
         try {
-            Optional<Region> regionOpt = regionRepository.findByIdWithProvinces(id);
+            // Antes: repository + mapper en el controller
+            // Optional Region> regionOpt regionRepository.findByIdWithProvinces(id);
+            // ... RegionDetailDTO regionDTO = Region Mapper.toDetailDTO (region);
 
-            if (regionOpt.isEmpty()) {
-                String msg = messageSource.getMessage("msg.region-controller.detail.notfound", null, locale);
-                redirectAttributes.addFlashAttribute("errorMessage", msg);
-                return "redirect:/regions";
-            }
+            // Ahora: el service se encarga de cargar con fetch (provinces) y mapear a DTO
+            RegionDetailDTO regionDTO = regionService.getDetail(id);
 
-            Region region = regionOpt.get();
-            // Mapear Entity> DTO de detalle (incluye provincias)
-            RegionDetailDTO regionDTO = RegionMapper.toDetailDTO (region);
             model.addAttribute("region", regionDTO);
             return "views/region/region-detail";
+        } catch (ResourceNotFoundException ex) {
+            String msg = messageSource.getMessage("msg.region-controller.detail.notfound", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            return "redirect:/regions";
         } catch (Exception e) {
-            logger.error("Error al obtener el detalle de la región {}: {}", id, e.getMessage(), e); String msg = messageSource.getMessage("msg.region-controller.detail.error", null, locale);
+            logger.error("Error al obtener el detalle de la región {}: {}", id, e.getMessage(), e);
+            String msg = messageSource.getMessage("msg.region-controller.detail.error", null, locale);
             redirectAttributes.addFlashAttribute("errorMessage", msg);
             return "redirect:/regions";
         }

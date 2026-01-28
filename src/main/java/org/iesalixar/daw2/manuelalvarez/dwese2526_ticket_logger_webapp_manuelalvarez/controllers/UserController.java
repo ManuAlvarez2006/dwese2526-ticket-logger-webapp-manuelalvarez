@@ -90,7 +90,7 @@ public class UserController {
                 return "views/user/user-form"; // Devuelve el formulario para mostrar los errores de validación
             }
 
-            if (userRepository.existsByUsername(userDTO.getEmail())) {
+            if (userRepository.existsByEmail(userDTO.getEmail())) {
                 logger.warn("El código del usuario {} ya existe.", userDTO.getEmail());
                 String errorMessage = messageSource.getMessage("msg.user-controller.insert.codeExist", null, locale);
                 redirectAttributes.addFlashAttribute("errorMessage", errorMessage);

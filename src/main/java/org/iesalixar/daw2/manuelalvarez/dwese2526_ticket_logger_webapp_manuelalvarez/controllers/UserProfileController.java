@@ -1,6 +1,8 @@
 package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.controllers;
 
 import jakarta.validation.Valid;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.exceptions.InvalidFileException;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.exceptions.ResourceNotFoundException;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.repositories.UserRepository;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.repositories.UserProfileRepository;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.dtos.UserProfileFormDTO;
@@ -8,6 +10,7 @@ import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalv
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.UserProfile;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.mappers.UserProfileMapper;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.services.FileStorageService;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.services.UserProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,123 +42,75 @@ public class UserProfileController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private UserProfileService userProfileService;
+
+    /**
+     * Muestra el formulario de perfil (alta/edición) para el usuario. * <p>
+     * Si no existe el usuario, se muestra la vista con mensaje de error. * Si existe, el service devuelve el DTO ya preparado para la vista.
+     * </p>
+     *
+     * @param model  modelo para pasar datos a la vista
+     * @param locale locale actual para i18n
+     * @return plantilla Thymeleaf del formulario de perfil
+     */
     @GetMapping("/edit")
     public String showProfileForm(Model model, Locale locale) {
+        String FIXED_EMAIL = "admin@app.local";
+        logger.info("Mostrando formulario de perfil para el usuario fijo {}", FIXED_EMAIL);
+        try {
+            UserProfileFormDTO formDto = userProfileService.getFormByEmail(FIXED_EMAIL);
+            model.addAttribute("userProfileForm", formDto);
+            return "views/user-profile/user-profile-form";
 
-        final String fixedEmail = "admin@app.local";
-        logger.info("Mostrando formulario de perfil para el usuario fijo {}", fixedEmail);
-
-        User user = userRepository.getUsersByEmail(fixedEmail);
-        UserProfileFormDTO formDto;
-
-        if (user != null) {
-            UserProfile profile = userProfileRepository.getUserProfileByUserId(user.getId());
-            formDto = UserProfileMapper.toFormDto(user, profile);
-        } else {
-            logger.warn("No se encontró el usuario con email {}", fixedEmail);
-            String errorMessage = messageSource.getMessage(
-                    "msg.user-controller.edit.notfound", null, locale);
+        } catch (
+                ResourceNotFoundException ex) {
+            logger.warn("No se encontró el usuario para cargar el perfil: {}", ex.getMessage());
+            String errorMessage = messageSource.getMessage("msg.user-controller.edit.notfound", null, locale);
             model.addAttribute("errorMessage", errorMessage);
-            formDto = new UserProfileFormDTO();
-        }
-
-        model.addAttribute("userProfileForm", formDto);
-        return "views/user/user-profile-form";
-    }
-
-    @PostMapping("/update")
-    public String updateProfile(
-            @Valid @ModelAttribute("userProfileForm") UserProfileFormDTO profileDto,
-            BindingResult result,
-            @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
-            RedirectAttributes redirectAttributes,
-            Locale locale) {
-
-        logger.info("Actualizando perfil para el usuario con ID {}", profileDto.getUserId());
-
-        if (result.hasErrors()) {
-            logger.warn("Errores de validación en el formulario de perfil para userId={}",
-                    profileDto.getUserId());
+            return "views/user-profile/user-profile-form";
+        } catch (Exception ex) {
+            logger.error("Error inesperado cargando el formulario de perfil: {}", ex.getMessage(), ex);
+            String errorMessage = messageSource.getMessage("msg.userProfile.error", null, locale);
+            model.addAttribute("errorMessage", errorMessage);
             return "views/user-profile/user-profile-form";
         }
+    }
 
+    public String updateProfile(@Valid @ModelAttribute("userProfileForm") UserProfileFormDTO profileDto, BindingResult result,
+                                @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
+                                 RedirectAttributes redirectAttributes,
+                                Locale locale) {
+
+
+        logger.info("Actualizando perfil para userId={}", profileDto.getUserId());
+        // 1) Si hay errores de Bean Validation, volvemos a la vista (sin redirect)
+        if (result.hasErrors()) {
+            logger.warn("Errores de validación en el formulario de perfil para userId={}", profileDto.getUserId());
+            return "views/user-profile/user-profile-form";
+        }
         try {
-            Long userId = profileDto.getUserId();
-            User user = userRepository.getUserById(userId);
-
-            if (user == null) {
-                logger.warn("No se encontró el usuario con ID {}", userId);
-                String errorMessage = messageSource.getMessage(
-                        "msg.user-controller.edit.notfound", null, locale);
-                redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-                return "redirect:/profile/edit";
-            }
-
-            UserProfile profile = userProfileRepository.getUserProfileByUserId(userId);
-            boolean isNew = (profile == null);
-            if (isNew) {
-// Crear un nuevo perfil a partir del DTO y el User
-                profile = UserProfileMapper.toNewEntity(profileDto, user);
-            } else {
-                UserProfileMapper.copyToExistingEntity(profileDto, profile);
-            }
-            userProfileRepository.saveOrUpdateUserProfile(profile);
-
-// 4. Gestión de la imagen de perfil (si se ha subido una nueva)
-            if (profileImageFile != null && !profileImageFile.isEmpty()) {
-                logger.info("Se ha subido un nuevo archivo de imagen para el perfil del usuario {}", userId);
-// Validación de tipo MIME
-                String contentType = profileImageFile.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
-                    logger.warn("Archivo de tipo no permitido: {}", contentType);
-                    String msg = messageSource.getMessage("msg.userProfile.image.invalidType", null, locale);
-                    redirectAttributes.addFlashAttribute("errorMessage", msg);
-                    return "redirect:/profile/edit";
-                }
-// Validación de tamaño (ejemplo: 2MB máximo)
-                long maxSizeBytes = 2 * 1024 * 1024; // 2 MB
-                if (profileImageFile.getSize() > maxSizeBytes) {
-                    logger.warn("Archivo demasiado grande: {} bytes (limite {} bytes)", profileImageFile.getSize(), maxSizeBytes);
-                    String msg = messageSource.getMessage("msg.userProfile.image.tooLarge", null, locale);
-                    redirectAttributes.addFlashAttribute("errorMessage", msg);
-                    return "redirect:/profile/edit";
-                }
-// Si llega aquí, el archivo pasa las validaciones lo guardamos
-                String oldImagePath = profileDto.getProfileImage(); // ruta actual (puede ser null)
-                String newImageWebPath=fileStorageService.saveFile(profileImageFile);
-                if (newImageWebPath == null) {
-                    logger.error("No se pudo guardar la nueva imagen de perfil para el usuario {}", userId); String msg = messageSource.getMessage("msg.userProfile.image.saveError", null, locale);
-                    redirectAttributes.addFlashAttribute("errorMessage", msg);
-                    logger.info("Nueva imagen de perfil guardada en {}", newImageWebPath);
-                }
-
-// Actualizar en el DTO la ruta de la imagen
-                profileDto.setProfileImage(newImageWebPath);
-                if(oldImagePath != null && !oldImagePath.isBlank()){
-                    logger.info("Eliminando imagen anterior de perfil: {}", oldImagePath);
-                    fileStorageService.deleteFile(oldImagePath);
-                }
-                if(isNew){
-                    profile = UserProfileMapper.toNewEntity(profileDto, user);
-                } else {
-                    UserProfileMapper.copyToExistingEntity(profileDto, profile);
-                }
-                userProfileRepository.saveOrUpdateUserProfile(profile);
-// 5. Mensaje de éxito
+            userProfileService.updateProfile(profileDto, profileImageFile);
+            // 3) Mensaje de éxito
             String successMessage = messageSource.getMessage("msg.userProfile.success", null, locale);
             redirectAttributes.addFlashAttribute("successMessage", successMessage);
-        }
-        } catch (Exception e) {
-            logger.error("Error al actualizar el perfil del usuario con ID {}: {}", profileDto.getUserId(), e.getMessage(), e);
-            String errorMessage = messageSource.getMessage(
-                    "msg.userProfile.error",
-                    null,
-                    locale
-            );
+        } catch (ResourceNotFoundException ex) {
+            logger.warn("No se pudo actualizar el perfil porque falta un recurso: {}", ex.getMessage());
+            String errorMessage = messageSource.getMessage("msg.user-controller.edit.notfound", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+        } catch (InvalidFileException ex) {
+            logger.warn("Imagen de perfil inválida: {}", ex.getMessage());
+        // Puedes reutilizar tus keys existentes o crear una genérica.
+        // Aquí pongo una genérica para no duplicar lógica de tipo/tamaño en el controller.
+            String errorMessage = messageSource.getMessage("msg.userProfile.image.invalid", null, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+        } catch (Exception ex) {
+            logger.error("Error inesperado actualizando el perfil: {}", ex.getMessage(), ex);
+            String errorMessage = messageSource.getMessage("msg.userProfile.error", null, locale);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
         }
-// 6. Redirigir de vuelta al formulario de perfil
-            return "redirect:/profile/edit";
+// 4) Redirect siempre al formulario (patrón PRG)
+        return "redirect:/profile/edit";
     }
 }
 

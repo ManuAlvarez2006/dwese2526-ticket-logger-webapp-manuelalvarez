@@ -27,7 +27,7 @@ public interface RegionRepository extends JpaRepository<Region, Long> {
          *
          * @param id   id que se excluye (normalmente el que estás editando)
          * @return true si existe otra región con ese código; false si n* */
-          boolean existsByCodeAndNotId(String code, Long id);
+          boolean existsByCodeAndIdNot(String code, Long id);
           /**
          * Busca por id.
          * Equivalente a: getRegionById(id), pero usando Optional para evitar null.
