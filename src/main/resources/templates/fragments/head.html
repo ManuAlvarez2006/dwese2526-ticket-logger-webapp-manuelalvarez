@@ -1,4 +1,4 @@
-<head th:fragment ="head(title)" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment ="head(title)" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <meta charset ="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -8,4 +8,25 @@
           integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
           crossorigin="anonymous">
 <link rel = "stylesheet" th:href="@{/css/styles.css}">
+
+    <!-- Botón de Login (solo si NO autenticado) -->
+    <div sec:authorize="!isAuthenticated()">
+        <a class="btn btn-outline-primary btn-sm" th:href="@{/login}">
+        </a>
+        Login
+    </div>
+
+    <li>
+        <form th:action="@{/logout}" method="post" class="m-0"> <button type="submit" class="dropdown-item text-danger"> Cerrar sesión
+        </button>
+        </form>
+    </li>
+    <!-- Texto bienvenida (solo autenticado) -->
+    <div class="d-none d-lg-flex align-items-center me-3"
+         sec:authorize="isAuthenticated()">
+        <span class="small text-secondary fw-medium me-1">Bienvenido,</span>
+        <span class="small fw-semibold text-primary text-truncate" style="max-width:220px"
+              sec:authentication="name"></span>
+    </div>
+
 </head>
