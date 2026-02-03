@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head ('Ticket Logger - Home')"></head>
+<head th:replace="fragments/head :: head('Ticket Logger - Home')"></head>
 
 <body class="d-flex flex-column h-100">
 
@@ -26,143 +26,133 @@
         <table class="table table-bordered table-striped mt-3">
             <thead>
             <tr>
-                <!--ID-->
+                <!-- ID -->
                 <th th:with="
-                order=${page.sort.getOrderFor('id')},
-                dir=${order != null ? order.direction.name().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
-
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('id') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'id,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'id,' + nextDir})}">
                         <span th:text="#{msg.user.list.id}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--Nombre de usuario-->
-                <th th:with="
-                order=${page.sort.getOrderFor('email')},
-                dir=${order != null ? order.direction.name().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- Email -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('email') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'email,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'email,' + nextDir})}">
                         <span th:text="#{msg.user.list.email}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--passwordHash-->
-                <th th:with="
-                order=${page.sort.getOrderFor('passwordHash')},
-                dir=${order != null ? order.direction.passwordHash().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- passwordHash -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('passwordHash') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'passwordHash,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'passwordHash,' + nextDir})}">
                         <span th:text="#{msg.user.list.passwordHash}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--accountNonLocked-->
-                <th th:with="
-                order=${page.sort.getOrderFor('accountNonLocked')},
-                dir=${order != null ? order.direction.accountNonLocked().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- accountNonLocked -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('accountNonLocked') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'accountNonLocked,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'accountNonLocked,' + nextDir})}">
                         <span th:text="#{msg.user.list.accountNonLocked}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--active-->
-                <th th:with="
-                order=${page.sort.getOrderFor('active')},
-                dir=${order != null ? order.direction.active().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- active -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('active') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'active,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'active,' + nextDir})}">
                         <span th:text="#{msg.user.list.active}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--lastPasswordChange-->
-                <th th:with="
-                order=${page.sort.getOrderFor('lastPasswordChange')},
-                dir=${order != null ? order.direction.lastPasswordChange().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- lastPasswordChange -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('lastPasswordChange') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'lastPasswordChange,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'lastPasswordChange,' + nextDir})}">
                         <span th:text="#{msg.user.list.lastPasswordChange}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--passwordExpiresAt-->
-                <th th:with="
-                order=${page.sort.getOrderFor('passwordExpiresAt')},
-                dir=${order != null ? order.direction.passwordExpiresAt().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- passwordExpiresAt -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('passwordExpiresAt') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'passwordExpiresAt,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'passwordExpiresAt,' + nextDir})}">
                         <span th:text="#{msg.user.list.passwordExpiresAt}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--failedLoginAttempts-->
-                <th th:with="
-                order=${page.sort.getOrderFor('failedLoginAttempts')},
-                dir=${order != null ? order.direction.failedLoginAttempts().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- failedLoginAttempts -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('failedLoginAttempts') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'failedLoginAttempts,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'failedLoginAttempts,' + nextDir})}">
                         <span th:text="#{msg.user.list.failedLoginAttempts}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--emailVerified-->
-                <th th:with="
-                order=${page.sort.getOrderFor('emailVerified')},
-                dir=${order != null ? order.direction.emailVerified().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- emailVerified -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('emailVerified') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'emailVerified,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'emailVerified,' + nextDir})}">
                         <span th:text="#{msg.user.list.emailVerified}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
-                <!--mustChangePassword-->
-                <th th:with="
-                order=${page.sort.getOrderFor('emailVerified')},
-                dir=${order != null ? order.direction.mustChangePassword().toLowerCase(): 'asc'},
-                nextDir=${dir =='asc' ? 'desc': 'asc'}">
 
+                <!-- mustChangePassword -->
+                <th th:with="
+                    order=${page != null and page.sort != null and page.sort.sorted ? page.sort.getOrderFor('mustChangePassword') : null},
+                    dir=${order != null ? order.direction.name().toLowerCase() : 'asc'},
+                    nextDir=${dir == 'asc' ? 'desc' : 'asc'}">
                     <a class="text-decoration-none"
-                       th:href="@{/users(page=${page.number},
-                       sort=${'mustChangePassword,' + nextDir})}">
+                       th:href="@{/users(page=${page != null ? page.number : 0}, sort=${'mustChangePassword,' + nextDir})}">
                         <span th:text="#{msg.user.list.mustChangePassword}"></span>
-                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
+                        <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc' ? '▼' : '▲'}"></span>
                     </a>
                 </th>
+
+                <!-- Acciones -->
                 <th th:text="#{msg.user-list.actions}">Acciones</th>
             </tr>
-
             </thead>
 
             <tbody>
-            <tr th:each="user : ${listUsers}">
+            <tr th:each="user : ${page != null ? page.content : {}}">
                 <td th:text="${user.id}"></td>
                 <td th:text="${user.email}"></td>
                 <td th:text="${user.passwordHash}"></td>
@@ -173,29 +163,15 @@
                 <td th:text="${user.failedLoginAttempts}"></td>
                 <td th:text="${user.emailVerified}"></td>
                 <td th:text="${user.mustChangePassword}"></td>
-
-                <!-- Roles -->
-                <th th:text="#{msg.user-list.col.roles}">Roles</th>
-                <td th:text="${#lists.isEmpty(user.roles)} ? '-' : ${#strings.listJoin(user.roles, ', ')}"></td>
+                <td th:text="${#lists.isEmpty(user.roles) ? '-' : #strings.listJoin(user.roles, ', ')}"></td>
                 <td>
-                    <!-- Ver detalle -->
-                    <a th:href="@{/users/detail(id=${user.id})}"
-                       class="btn btn-outline-secondary btn-sm me-1"
-                       th:text="#{msg.user-list.viewDetail}"></a>
-
-                    <a th:href="@{/users/edit(id=${user.id})}"
-                       class="btn btn-primary btn-sm"
-                       th:text="#{msg.user-list.edit}">
-                        Editar
-                    </a>
-
+                    <a th:href="@{/users/detail(id=${user.id})}" class="btn btn-outline-secondary btn-sm me-1" th:text="#{msg.user-list.viewDetail}"></a>
+                    <a th:href="@{/users/edit(id=${user.id})}" class="btn btn-primary btn-sm" th:text="#{msg.user-list.edit}"></a>
                     <form th:action="@{/users/delete}" method="post" class="d-inline">
                         <input type="hidden" name="id" th:value="${user.id}" />
                         <button type="submit" class="btn btn-danger btn-sm"
                                 th:onclick="|return confirm('#{msg.user-list.confirm}');|"
-                                th:text="#{msg.user-list.delete}">
-                            Eliminar
-                        </button>
+                                th:text="#{msg.user-list.delete}"></button>
                     </form>
                 </td>
             </tr>
@@ -203,64 +179,27 @@
         </table>
 
         <!-- Paginación -->
-        <div class="d-flex justify-content-between align-items-center mt-3"
-             th:if="${page.totalPages > 0}">
-
-
-            <!-- Info de página -->
+        <div class="d-flex justify-content-between align-items-center mt-3" th:if="${page != null and page.totalPages > 0}">
             <div>
-                <!-- "Página X de Y (N registros en total)" -->
-                <span th:text="#{msg.pagination.info(${page.number} + 1, ${page.totalPages}, ${page.totalElements})}"></span>
+                <span th:text="#{msg.pagination.info(${page.number + 1}, ${page.totalPages}, ${page.totalElements})}"></span>
             </div>
-
-
-            <!-- Controles de paginación -->
             <nav th:aria-label="#{msg.pagination.aria.label}">
                 <ul class="pagination mb-0">
-
-
-                    <!-- Botón Anterior -->
-                    <li class="page-item"
-                        th:classappend="${page.first} ? ' disabled'">
-                        <a class="page-link"
-                           th:href="@{/users(page=${page.number - 1}, size=${page.size}, sort=${sortParam})}"
-                           th:aria-label="#{msg.pagination.prev}">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
+                    <li class="page-item" th:classappend="${page.first} ? ' disabled'">
+                        <a class="page-link" th:href="@{/users(page=${page.number - 1}, size=${page.size}, sort=${sortParam})}" th:aria-label="#{msg.pagination.prev}">&laquo;</a>
                     </li>
-
-
-                    <!-- Números de página -->
-                    <li class="page-item"
-                        th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
-                        th:classappend="${i} == ${page.number} ? ' active'">
-                        <a class="page-link"
-                           th:text="${i + 1}"
-                           th:href="@{/users(page=${i}, size=${page.size}, sort=${sortParam})}">
-                        </a>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}" th:classappend="${i} == ${page.number} ? ' active'">
+                        <a class="page-link" th:text="${i + 1}" th:href="@{/users(page=${i}, size=${page.size}, sort=${sortParam})}"></a>
                     </li>
-
-
-                    <!-- Botón Siguiente -->
-                    <li class="page-item"
-                        th:classappend="${page.last} ? ' disabled'">
-                        <a class="page-link"
-                           th:href="@{/users(page=${page.number + 1}, size=${page.size}, sort=${sortParam})}"
-                           th:aria-label="#{msg.pagination.next}">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
+                    <li class="page-item" th:classappend="${page.last} ? ' disabled'">
+                        <a class="page-link" th:href="@{/users(page=${page.number + 1}, size=${page.size}, sort=${sortParam})}" th:aria-label="#{msg.pagination.next}">&raquo;</a>
                     </li>
-
-
                 </ul>
             </nav>
         </div>
 
-
         <!-- Botón volver -->
-        <a th:href="@{/}" class="btn btn-secondary" th:text="#{msg.user-form.returnback}">
-            Volver al inicio
-        </a>
+        <a th:href="@{/}" class="btn btn-secondary" th:text="#{msg.user-form.returnback}">Volver al inicio</a>
     </div>
 </main>
 

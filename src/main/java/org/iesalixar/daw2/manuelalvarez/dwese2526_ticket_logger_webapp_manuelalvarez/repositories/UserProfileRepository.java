@@ -6,11 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface UserProfileRepository extends JpaRepository<UserProfile, Long> {
-        UserProfile getUserProfileByUserId (Long userId);
-        void saveOrUpdateUserProfile (UserProfile userProfile);
-        boolean existsUserProfileByUserId (Long userId);
 
-    Optional<UserProfile> findByUserId(Long id);
+    // Devuelve Optional para evitar null
+    Optional<UserProfile> findByUserId(Long userId);
+
+    // Comprueba existencia
+    boolean existsByUserId(Long userId);
+
+    // save() ya viene de JpaRepository, no hace falta declarar saveOrUpdate
 }
-
-

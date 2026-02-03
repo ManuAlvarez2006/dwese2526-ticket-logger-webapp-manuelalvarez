@@ -68,7 +68,7 @@ public class ProvinceMapper {
         e.setRegion(region);
         return e;
     }
-    public static void copyToexistingEntity(ProvinceUpdateDTO dto, Province entity) {
+    public static void copyToExistingEntity(ProvinceUpdateDTO dto, Province entity) {
         if (dto == null || entity == null) return;
         entity.setCode(dto.getCode());
         entity.setName(dto.getName());
@@ -76,4 +76,6 @@ public class ProvinceMapper {
         region.setId(dto.getRegionId());
         entity.setRegion(region);
     }
+
+
 }

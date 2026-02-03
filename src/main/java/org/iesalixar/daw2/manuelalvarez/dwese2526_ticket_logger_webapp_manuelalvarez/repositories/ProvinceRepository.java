@@ -44,7 +44,7 @@ public interface ProvinceRepository  extends JpaRepository<Province, Long> {
      * @param id identificador de la provincia
      * @return {@link Optional ) con la provincia (incluyendo provincias) si existe; {@link Optional#empty()} si no existe
      */
-    @Query("select r from Province r left join fetch r.provinces where г.id = :id")
+    @Query("select p from Province p left join fetch p.region where p.id = :id")
     Optional<Province> findByIdWithProvinces(@Param("id") Long id);
         @Override
         Optional<Province> findById(Long id);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/head :: head ('Ticket Logger - Home')"></head>
 
 <body class="d-flex flex-column h-100">
@@ -7,20 +7,22 @@
 <!-- Header -->
 <header th:replace="fragments/header :: header"></header>
 
+<!-- Contenido dinámico -->
 <main class="list-page">
     <div class="list-card">
 
-        <!-- Título listado -->
-        <h1 th:text="#{msg.province-list.title}"></h1>
+        <!-- Título de la lista -->
+        <h1 th:text="#{msg.province-list.title}">Listado de Provincias</h1>
 
-        <!-- Botón para añadir nueva provincia -->
-        <a th:href="@{/provinces/new}" class="btn btn-success"
-           th:text="#{msg.province-list.add}"></a>
+        <!-- Botón para añadir -->
+        <a th:href="@{/provinces/new}" class="btn btn-success" th:text="#{msg.province-list.add}">
+            Agregar Nueva Provincia
+        </a>
 
         <!-- Mensaje de error -->
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <!-- Tabla de provincias -->
+        <!-- Tabla -->
         <table class="table table-bordered table-striped mt-3">
             <thead>
             <tr>
@@ -29,73 +31,74 @@
                 order=${page.sort.getOrderFor('id')},
                 dir=${order != null ? order.direction.name().toLowerCase(): 'asc'},
                 nextDir=${dir =='asc' ? 'desc': 'asc'}">
-
                     <a class="text-decoration-none"
-                       th:href="@{/provinces(page=${page.number},
-                       sort=${'id,' + nextDir})}">
-                        <span th:text="#{msg.province.list.id}"></span>
+                       th:href="@{/provinces(page=${page.number}, sort=${'id,' + nextDir})}">
+                        <span th:text="#{msg.province.list.id}">ID</span>
                         <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
                     </a>
                 </th>
+
                 <!--Codigo-->
                 <th th:with="
                 order=${page.sort.getOrderFor('code')},
                 dir=${order != null ? order.direction.name().toLowerCase(): 'asc'},
                 nextDir=${dir =='asc' ? 'desc': 'asc'}">
-
                     <a class="text-decoration-none"
-                       th:href="@{/provinces(page=${page.number},
-                       sort=${'code,' + nextDir})}">
-                        <span th:text="#{msg.province.list.code}"></span>
+                       th:href="@{/provinces(page=${page.number}, sort=${'code,' + nextDir})}">
+                        <span th:text="#{msg.province.list.code}">Código</span>
                         <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
                     </a>
                 </th>
+
                 <!--Nombre-->
                 <th th:with="
                 order=${page.sort.getOrderFor('name')},
                 dir=${order != null ? order.direction.name().toLowerCase(): 'asc'},
                 nextDir=${dir =='asc' ? 'desc': 'asc'}">
-
                     <a class="text-decoration-none"
-                       th:href="@{/provinces(page=${page.number},
-                       sort=${'name,' + nextDir})}">
-                        <span th:text="#{msg.province.list.name}"></span>
+                       th:href="@{/provinces(page=${page.number}, sort=${'name,' + nextDir})}">
+                        <span th:text="#{msg.province.list.name}">Nombre</span>
                         <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
                     </a>
                 </th>
+
+                <!--Region-->
                 <th th:with="
                 order=${page.sort.getOrderFor('regionName')},
                 dir=${order != null ? order.direction.name().toLowerCase(): 'asc'},
                 nextDir=${dir =='asc' ? 'desc': 'asc'}">
-
                     <a class="text-decoration-none"
                        th:href="@{/provinces(page=${page.number}, sort=${'regionName,' + nextDir})}">
-                        <span th:text="#{msg.province-list.province}"></span>
+                        <span th:text="#{msg.province.list.region}">Región</span>
                         <span class="ms-1" th:if="${order != null}" th:text="${dir == 'asc'} ? '▼' : '▲'"></span>
                     </a>
                 </th>
-                <th th:text="#{msg.province-list.actions}"></th>
+
+                <th th:text="#{msg.province-list.actions}">Acciones</th>
             </tr>
             </thead>
+
             <tbody>
-            <tr th:each="province : ${listProvinces}">
+            <tr th:each="province : ${page.content}">
                 <td th:text="${province.id}"></td>
                 <td th:text="${province.code}"></td>
                 <td th:text="${province.name}"></td>
                 <td th:text="${province.regionName}"></td>
                 <td>
+                    <!-- Ver detalle -->
                     <a th:href="@{/provinces/detail(id=${province.id})}"
-                       class="btn btn-info btn-sm"
-                       th:text="#{msg.province-list.detail}"></a>
+                       class="btn btn-outline-secondary btn-sm me-1"
+                       th:text="#{msg.province-list.viewDetail}">Detalle</a>
 
-                    <a th:href="@{/provinces/edit(id=${province.id})}" class="btn btn-primary btn-sm"
-                       th:text="#{msg.province-list.edit}"></a>
+                    <a th:href="@{/provinces/edit(id=${province.id})}"
+                       class="btn btn-primary btn-sm"
+                       th:text="#{msg.province-list.edit}">Editar</a>
 
                     <form th:action="@{/provinces/delete}" method="post" class="d-inline">
                         <input type="hidden" name="id" th:value="${province.id}" />
                         <button type="submit" class="btn btn-danger btn-sm"
-                                th:text="#{msg.province-list.delete}"
-                                th:onclick="return confirm('#{msg.province-list.confirm}');"></button>
+                                th:onclick="|return confirm('#{msg.province-list.confirm}');|"
+                                th:text="#{msg.province-list.delete}">Eliminar</button>
                     </form>
                 </td>
             </tr>
@@ -103,61 +106,43 @@
         </table>
 
         <!-- Paginación -->
-        <div class="d-flex justify-content-between align-items-center mt-3"
-             th:if="${page.totalPages > 0}">
-
-
-            <!-- Info de página -->
+        <div class="d-flex justify-content-between align-items-center mt-3" th:if="${page.totalPages > 0}">
             <div>
-                <!-- "Página X de Y (N registros en total)" -->
                 <span th:text="#{msg.pagination.info(${page.number} + 1, ${page.totalPages}, ${page.totalElements})}"></span>
             </div>
-
-
-            <!-- Controles de paginación -->
             <nav th:aria-label="#{msg.pagination.aria.label}">
                 <ul class="pagination mb-0">
-
-
-                    <!-- Botón Anterior -->
-                    <li class="page-item"
-                        th:classappend="${page.first} ? ' disabled'">
+                    <li class="page-item" th:classappend="${page.first} ? ' disabled'">
                         <a class="page-link"
-                           th:href="@{/regions(page=${page.number - 1}, size=${page.size}, sort=${sortParam})}"
-                           th:aria-label="#{msg.pagination.prev}">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
+                           th:href="@{/provinces(page=${page.number - 1}, size=${page.size}, sort=${sortParam})}"
+                           th:aria-label="#{msg.pagination.prev}">&laquo;</a>
                     </li>
 
-
-                    <!-- Números de página -->
                     <li class="page-item"
                         th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
                         th:classappend="${i} == ${page.number} ? ' active'">
                         <a class="page-link"
                            th:text="${i + 1}"
-                           th:href="@{/regions(page=${i}, size=${page.size}, sort=${sortParam})}">
-                        </a>
+                           th:href="@{/provinces(page=${i}, size=${page.size}, sort=${sortParam})}"></a>
                     </li>
 
-
-                    <!-- Botón Siguiente -->
-                    <li class="page-item"
-                        th:classappend="${page.last} ? ' disabled'">
+                    <li class="page-item" th:classappend="${page.last} ? ' disabled'">
                         <a class="page-link"
-                           th:href="@{/regions(page=${page.number + 1}, size=${page.size}, sort=${sortParam})}"
-                           th:aria-label="#{msg.pagination.next}">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
+                           th:href="@{/provinces(page=${page.number + 1}, size=${page.size}, sort=${sortParam})}"
+                           th:aria-label="#{msg.pagination.next}">&raquo;</a>
                     </li>
-
-
                 </ul>
             </nav>
         </div>
 
-        <a th:href="@{/}" class="btn btn-secondary" th:text="#{msg.province-form.returnback}"></a>
+        <!-- Botón volver -->
+        <a th:href="@{/}" class="btn btn-secondary" th:text="#{msg.province-form.returnback}">Volver al inicio</a>
     </div>
 </main>
+
+<!-- Footer -->
+<footer th:replace="fragments/footer :: footer"></footer>
+<div th:replace="fragments/scripts :: scripts"></div>
+
 </body>
 </html>

@@ -28,7 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      *
      * @param id   id que se excluye (normalmente el que estás editando)
      * @return true si existe otra región con ese código; false si n* */
-    boolean existsByEmailAndNotId(String email, Long id);
+    boolean existsByEmailAndIdNot(String email, Long id);
     /**
      * Busca por id.
      * Equivalente a: getUserById(id), pero usando Optional para evitar null.
@@ -43,9 +43,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param id identificador de la región
      * @return {@link Optional) con la región (incluyendo provincias) si existe; {@link Optional#empty()} si no existe
      */
-    @Query("select r from User r left join fetch r.provinces where г.id = :id")
-    Optional<User> findByIdWithProvinces(@Param("id") Long id);
-    @Override
+    @Query("select u from User u where u.id = :id")
     Optional<User> findById(Long id);
 
     Optional<User> findRolesById(Long id);

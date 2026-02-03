@@ -40,9 +40,9 @@
                 <label for="regionId" class="form-label" th:text="#{msg.province-form.region}"></label>
                 <select id="regionId" class="form-select" th:field="*{regionId}">
                     <option value="" th:text="#{msg.province-form.region.select}"></option>
-                    <option th:each="reg : ${listRegions}"
-                            th:value="${reg.id}"
-                            th:text="${reg.name}">
+                    <option th:each="reg : ${regions}"
+                    th:value="${reg.id}"
+                    th:text="${reg.name}">
                     </option>
                 </select>
                 <div class="text-danger" th:if="${#fields.hasErrors('regionId')}" th:errors="*{regionId}"></div>
