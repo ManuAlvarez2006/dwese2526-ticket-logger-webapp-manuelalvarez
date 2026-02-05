@@ -11,5 +11,73 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+
+  # Servicio que construye y ejecuta la aplicación Spring Boot (ticket-logger) ticket-logger-app:
+  ticket-logger-app:
+    build:
+      # 'context' es la carpeta que se envía al demonio de Docker para construir la imagen. #Aquí usamos la raíz del proyecto (.) donde están el Dockerfile, pom.xml y src/.
+      context: .
+      #Fichero Dockerfile a usar dentro del contexto anterior.
+      # Si se llama literalmente 'Dockerfile', esta línea sería opcional, pero la dejamos por claridad
+      dockerfile: Dockerfile
+    #Nombre explícito del contenedor. Para luego poder usarlo en los comandos.
+    container_name: ticket-logger-app
+    #Aqui defininos qué variables del .env queremos pasar al contenedor.
+    env_file: .env
+    environment:
+      # URL JDBC completa hacia el servicio 'db' dentro de la red de Docker.
+      DB URL: ${DB_URL}
+      #Credenciales de la base de datos que usará Spring Boot.
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      #Driver JDBC que usard Spring.
+      DB DRIVER: ${DB_DRIVER}
+      #Ruta donde la app guardará los ficheros subidos dentro del contenedor.
+      #Debe coincidir con lo configurado en application.properties (app.upload-path).
+      APP_UPLOAD_PATH: ${APP_UPLOAD_PATH}
+      # Puerto interno en el que Spring Boot escucha dentro del contenedor.
+      APP_PORT: ${APP_PORT}
+    # 'depends on indica que este servicio depende del servicio 'db':
+    # - Docker levantard primero 'db' y luego 'ticket-logger-app".
+    depends_on:
+      - db
+
+    # Volumenes montados en la app:
+    # - 'app_uploads' es un volumen nombrado definido en la sección 'volumenes:' al final.
+    # - Se monta sobre /app/uploads (la ruta que usamos en el Dockerfile y APP_UPLOAD_PATH).
+    # Con esto, los ficheros que suban los usuarios no se pierden al recrear el contenedor.
+    volumes:
+      - app_uploads:/app/uploads
+  # Servicio de Nginx que actúa como reverse proxy y termina TLS (HTTPS).
+  proxy:
+    build:
+      # Contexto de build carpeta 'nginx' donde tienes nginx.conf y docker-entrypoint.sh.
+      context: ./nginx
+      # Dockerfile específico dentro de esa carpeta. De nuevo, si se llama 'Dockerfile'
+      # sería opcional, pero lo dejamos explícito.
+      dockerfile: Dockerfile
+    # Nombre del contenedor de Nginx.
+    container_name: ticket-logger-proxy
+    # Este servicio depende de que la app esté levantada.
+    # Esto asegura que el proxy se levante después de 'ticket-logger-app",
+    # aunque en la práctica Nginx puede arrancar incluso si el backend tarda un poco: #simplemente devolverá errores 502 hasta que el backend esté disponible.
+    depends_on:
+      - ticket-logger-app
+    #Mapeo de puertos del host al contenedor:
+    #80:80 → puerto 88 del HOST se conecta al puerto 89 del contenedor (HTTP).
+    # - "443:443" puerto 443 del HOST se conecta al puerto 443 del contenedor (HTTPS).
+    #Es lo que hace que puedas entrar desde el navegador a http(s)://localhost.
+    ports:
+      - "80:80"
+      - "443:443"
+    #Volumen para los certificados TLS:
+    # - 'certs' es un volumen nombrado definido en 'volumes:'.
+    # - Se monta en /etc/nginx/certs, que es donde el entrypoint genera/lee 'server.crt' y 'server.key'.
+    # - ':' indica lectura/escritura (modo por defecto, se podría omitir).
+    # Usar un volumen permite que el certificado se conserve entre reinicios del contenedor y no se regenere cada vez (o
+    volumes:
+      - certs:/etc/nginx/certs:rw
 volumes:
-    db_data:
+  db_data:
+  app_uploads:
+  certs:
