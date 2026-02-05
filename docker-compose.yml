@@ -20,7 +20,7 @@ services:
       #Fichero Dockerfile a usar dentro del contexto anterior.
       # Si se llama literalmente 'Dockerfile', esta línea sería opcional, pero la dejamos por claridad
       dockerfile: Dockerfile
-    #Nombre explícito del contenedor. Para luego poder usarlo en los comandos.
+    #Nombre explícito del contenedor. Para luego poder usarlo en los comandos
     container_name: ticket-logger-app
     #Aqui defininos qué variables del .env queremos pasar al contenedor.
     env_file: .env
