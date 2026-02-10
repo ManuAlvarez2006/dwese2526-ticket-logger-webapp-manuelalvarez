@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.util.Locale;
 
 @Controller
@@ -55,13 +56,12 @@ public class UserProfileController {
      * @return plantilla Thymeleaf del formulario de perfil
      */
     @GetMapping("/edit")
-    public String showProfileForm(Model model, Locale locale) {
-        String FIXED_EMAIL = "admin@app.local";
-        logger.info("Mostrando formulario de perfil para el usuario fijo {}", FIXED_EMAIL);
+    public String showProfileForm(Model model, Locale locale, Principal principal) {
+       String email = principal.getName();
         try {
-            UserProfileFormDTO formDto = userProfileService.getFormByEmail(FIXED_EMAIL);
+            UserProfileFormDTO formDto = userProfileService.getFormByEmail(email);
             model.addAttribute("userProfileForm", formDto);
-            return "views/user-profile/user-profile-form";
+            return "views/user/user-profile-form";
 
         } catch (
                 ResourceNotFoundException ex) {
@@ -73,24 +73,25 @@ public class UserProfileController {
             logger.error("Error inesperado cargando el formulario de perfil: {}", ex.getMessage(), ex);
             String errorMessage = messageSource.getMessage("msg.userProfile.error", null, locale);
             model.addAttribute("errorMessage", errorMessage);
-            return "views/user-profile/user-profile-form";
+            return "views/user/user-profile-form";
         }
     }
 
+    @PostMapping("/update")
     public String updateProfile(@Valid @ModelAttribute("userProfileForm") UserProfileFormDTO profileDto, BindingResult result,
                                 @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
                                  RedirectAttributes redirectAttributes,
-                                Locale locale) {
+                                Locale locale, Principal principal) {
 
-
-        logger.info("Actualizando perfil para userId={}", profileDto.getUserId());
+        String email = principal.getName();
+        logger.info("Actualizando perfil para email={}", email);
         // 1) Si hay errores de Bean Validation, volvemos a la vista (sin redirect)
         if (result.hasErrors()) {
-            logger.warn("Errores de validación en el formulario de perfil para userId={}", profileDto.getUserId());
-            return "views/user-profile/user-profile-form";
+            logger.warn("Errores de validación en el formulario de perfil para email={}", email);
+            return "views/user/user-profile-form";
         }
         try {
-            userProfileService.updateProfile(profileDto, profileImageFile);
+            userProfileService.updateProfile(email, profileDto, profileImageFile);
             // 3) Mensaje de éxito
             String successMessage = messageSource.getMessage("msg.userProfile.success", null, locale);
             redirectAttributes.addFlashAttribute("successMessage", successMessage);
