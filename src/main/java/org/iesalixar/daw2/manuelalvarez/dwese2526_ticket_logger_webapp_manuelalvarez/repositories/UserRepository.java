@@ -4,6 +4,7 @@ package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelal
 
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.Region;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.entities.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -48,6 +49,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findRolesById(Long id);
 
+    @EntityGraph(attributePaths = "roles")
     Optional<User> findByEmail(String email);
 }
 
