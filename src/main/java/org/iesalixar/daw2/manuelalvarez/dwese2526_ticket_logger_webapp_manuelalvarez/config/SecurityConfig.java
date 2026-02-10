@@ -1,5 +1,7 @@
 package org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.config;
 
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.handlers.CustomOAuth2FailureHandler;
+import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.handlers.CustomOAuth2SuccessHandler;
 import org.iesalixar.daw2.manuelalvarez.dwese2526_ticket_logger_webapp_manuelalvarez.services.CustomUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,12 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+
+
+    @Autowired
+    private CustomOAuth2FailureHandler customOAuth2FailureHandler;
     /**
      * Configura el filtro de seguridad para las solicitudes HTTP, especificando las
      * rutas permitidas y los roles necesarios para acceder a diferentes endpoints.
@@ -63,11 +71,20 @@ public class SecurityConfig {
                         .permitAll(); // Permite acceso a la página de login a todos los usuarios
 
                 })
+                .oauth2Login(oauth2 -> {
+                    logger.debug("Configurando login con OAuth2");
+                    oauth2
+                            .loginPage("/login")        // Reutiliza la página de inicio de sesión personalizada
+                            .successHandler(customOAuth2SuccessHandler) // Usa el Success Handler personalizado
+                            .failureHandler(customOAuth2FailureHandler); // Handler para fallo en autenticación
+                })
+
                 .sessionManagement(session -> {
                     logger.debug("Configurando política de gestión de sesiones");
                     // Usa sesiones cuando sea necesario
                     session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
                 });
+
         logger.info("Saliendo del método securityFilterChain");
         return http.build();
     }

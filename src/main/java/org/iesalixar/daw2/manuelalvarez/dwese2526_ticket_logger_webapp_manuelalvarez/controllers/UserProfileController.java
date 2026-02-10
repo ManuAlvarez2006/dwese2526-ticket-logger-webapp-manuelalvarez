@@ -68,7 +68,7 @@ public class UserProfileController {
             logger.warn("No se encontró el usuario para cargar el perfil: {}", ex.getMessage());
             String errorMessage = messageSource.getMessage("msg.user-controller.edit.notfound", null, locale);
             model.addAttribute("errorMessage", errorMessage);
-            return "views/user-profile/user-profile-form";
+            return "views/user/user-profile-form";
         } catch (Exception ex) {
             logger.error("Error inesperado cargando el formulario de perfil: {}", ex.getMessage(), ex);
             String errorMessage = messageSource.getMessage("msg.userProfile.error", null, locale);
