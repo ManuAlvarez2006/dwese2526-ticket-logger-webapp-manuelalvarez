@@ -55,7 +55,7 @@ public class SecurityConfig {
         // Configuración de seguridad
         http.authorizeHttpRequests(auth -> {
                     logger.debug("Configurando autorización de solicitudes HTTP");
-                    auth.requestMatchers("/", "/js/**", "/css/**", "/images/**", "/login", "/register").permitAll()        // Acceso anónimo
+                    auth.requestMatchers("/", "/js/**", "/css/**", "/images/**", "/login", "/register","/auth/**","/error","/error/**").permitAll()        // Acceso anónimo
                             .requestMatchers("/users**").hasRole("ADMIN")         // Solo ADMIN
                             // REGIONS: ADMIN o MANAGER (para algunas pruebas de permisos)
                             .requestMatchers("/regions**").hasAnyRole("ADMIN", "MANAGER")
